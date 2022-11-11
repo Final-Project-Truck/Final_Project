@@ -24,7 +24,8 @@ router.register(r'baseusers', BaseUsersAPIViewSet)
 
 
 urlpatterns = [
+    path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include(router.urls)),
-    path('list_users/',BaseUsersSafeAPIViewSet.as_view()),
+    path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
 ]

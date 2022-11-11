@@ -22,9 +22,9 @@ class BaseUsersAPIViewSet(ModelViewSet):
         email = serializer.data['email']
 
         with transaction.atomic():
-            django_user = User.objects.create_user(username, password, email)
+            django_user = User.objects.create_user(username=username, password=password, email=email)
             base_user = BaseUsers.objects.create(**serializer.data, django_user=django_user)
-            return Response(BaseUsersSerializer(base_user).data,status=201)
+            return Response(BaseUsersSerializer(base_user).data, status=201)
 
 
 class BaseUsersSafeAPIViewSet(ListAPIView):
