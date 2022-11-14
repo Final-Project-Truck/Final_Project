@@ -18,9 +18,17 @@ from django.urls import path, include
 from rest_framework import routers
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet
+from company.views import CompanyAPIViewSet
+from survey.views import SurveyQuestionAPIViewSet, SurveyAnswerAPIViewSet, SurveyAPIViewSet
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
+
+router.register(r'companies', CompanyAPIViewSet)
+
+router.register(r'questions', SurveyQuestionAPIViewSet)
+router.register(r'answers', SurveyAnswerAPIViewSet)
+router.register(r'survey', SurveyAPIViewSet)
 
 
 urlpatterns = [
