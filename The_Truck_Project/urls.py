@@ -19,17 +19,20 @@ from rest_framework import routers
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet
 from company.views import CompanyAPIViewSet
-from survey.views import SurveyQuestionAPIViewSet, SurveyAnswerAPIViewSet, SurveyAPIViewSet
+from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
+    AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
 
 router.register(r'companies', CompanyAPIViewSet)
 
-router.register(r'questions', SurveyQuestionAPIViewSet)
-router.register(r'answers', SurveyAnswerAPIViewSet)
 router.register(r'survey', SurveyAPIViewSet)
-
+router.register(r'questions', QuestionAPIViewSet)
+router.register(r'options', OptionAPIViewSet)
+router.register(r'submissions', SubmissionAPIViewSet)
+router.register(r'choice_answers', AnswerChoiceAPIViewSet)
+router.register(r'text_answers', AnswerTextAPIViewSet)
 
 urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),

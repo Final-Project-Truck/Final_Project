@@ -1,42 +1,69 @@
 from django.db import models
-from baseuser.models import BaseUsers
-from company.models import Company
 
-scale = [('5', 'Very Good'),
-         ('4', 'Good'),
-         ('3', 'Neutral'),
-         ('2', 'Poor',),
-         ('1', 'Very Poor'),
-         ('0', 'Not Applicable'),
-         ]
+
+from django.utils import timezone
+
+# from baseuser.models import BaseUsers
+# from django.contrib.auth.models import User
 
 question_type = [('txt', 'Text'),
-                 ('scl', 'Scale'),
-                 # ('ten', 'Tenure')
-                ]
-
-
-class SurveyQuestion(models.Model):
-    question_id = models.AutoField(primary_key=True)
-    category = models.CharField(max_length=50)
-    type = models.CharField(max_length=3, choices=question_type)
-    question = models.TextField()
-
-    def __str__(self):
-        return f'{self.question}'
-
-
-class SurveyAnswer(models.Model):
-    answer_id = models.AutoField(primary_key=True)
-    question = models.OneToOneField(SurveyQuestion, on_delete=models.CASCADE)
-    scale_answer = models.CharField(max_length=1, choices=scale, null=True)
-    comment = models.TextField(null=True)
+                 ('cho', 'Choice')]
 
 
 class Survey(models.Model):
-    survey_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(BaseUsers, on_delete=models.SET_NULL, null=True)
-    company = models.ForeignKey(Company, on_delete=models.SET_NULL, null=True)
-    defunct_company = models.CharField(max_length=100)
-    questions = models.ManyToManyField(SurveyQuestion)
-    answers = models.ManyToManyField(SurveyAnswer)
+    """A survey created by a user."""
+
+    title = models.CharField(max_length=64)
+    is_active = models.BooleanField(default=False)
+    # creator = models.ForeignKey(BaseUsers, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f'{self.title}'
+
+
+class Question(models.Model):
+    """A question in a survey"""
+
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    prompt = models.CharField(max_length=128)
+    type = models.CharField(max_length=3, choices=question_type)
+
+    def __str__(self):
+        return f'{self.prompt}'
+
+class Option(models.Model):
+    """A multi-choice option available as a part of a survey question."""
+
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    text = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f'{self.text}'
+
+
+class Submission(models.Model):
+    """A set of answers a survey's questions."""
+
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_complete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'{self.survey}'
+
+class AnswerChoice(models.Model):
+    """An answer a survey's choice questions."""
+
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    option = models.ForeignKey(Option, on_delete=models.CASCADE)
+
+
+
+class AnswerText(models.Model):
+    """An answer a survey's text questions."""
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    comment = models.TextField()
+
+    def __str__(self):
+        return f'{self.submission}'

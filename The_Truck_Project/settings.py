@@ -81,7 +81,7 @@ WSGI_APPLICATION = 'The_Truck_Project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'the_truck_project_db',
+        'NAME': 'truck_project_test_db',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
         'HOST': '127.0.0.1',

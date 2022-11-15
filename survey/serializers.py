@@ -1,21 +1,39 @@
 from rest_framework.serializers import ModelSerializer
 
-from survey.models import Survey, SurveyQuestion, SurveyAnswer
+from survey.models import Survey, Question, Option, Submission, AnswerChoice, AnswerText
 
 
 class SurveySerializer(ModelSerializer):
     class Meta:
         model = Survey
-        exclude = ['defunct_company', 'user']
+        fields = '__all__'
 
 
-class SurveyQuestionSerializer(ModelSerializer):
+class QuestionSerializer(ModelSerializer):
     class Meta:
-        model = SurveyQuestion
-        exclude = ['question_id']
+        model = Question
+        fields = '__all__'
 
 
-class SurveyAnswerSerializer(ModelSerializer):
+class OptionSerializer(ModelSerializer):
     class Meta:
-        model = SurveyAnswer
-        exclude = ['answer_id']
+        model = Option
+        fields = '__all__'
+
+
+class SubmissionSerializer(ModelSerializer):
+    class Meta:
+        model = Submission
+        fields = '__all__'
+
+
+class AnswerChoiceSerializer(ModelSerializer):
+    class Meta:
+        model = AnswerChoice
+        fields = '__all__'
+
+
+class AnswerTextSerializer(ModelSerializer):
+    class Meta:
+        model = AnswerText
+        fields = '__all__'
