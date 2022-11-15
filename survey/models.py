@@ -9,7 +9,7 @@ from django.utils import timezone
 question_type = [('txt', 'Text'),
                  ('cho', 'Choice')]
 
-
+# todo create template survey?
 class Survey(models.Model):
     """A survey created by a user."""
 
@@ -24,7 +24,7 @@ class Survey(models.Model):
 
 class Question(models.Model):
     """A question in a survey"""
-
+# Todo check for manytomany vs foreignkey
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
     prompt = models.CharField(max_length=128)
     type = models.CharField(max_length=3, choices=question_type)
@@ -57,12 +57,14 @@ class AnswerChoice(models.Model):
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
     option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
 
 
 class AnswerText(models.Model):
     """An answer a survey's text questions."""
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
     comment = models.TextField()
 
     def __str__(self):
