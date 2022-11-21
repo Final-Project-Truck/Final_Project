@@ -13,4 +13,4 @@ class BaseUsersSerializer(ModelSerializer):
     class Meta:
         model = BaseUsers
         exclude = ['django_user']
-        extra_kwargs = {'password': {'write_only': True}}
+        # extra_kwargs = {'password': {'write_only': True}}

@@ -59,14 +59,14 @@ class Submission(models.Model):
 class AnswerChoice(models.Model):
     """An answer a survey's choice questions."""
 
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='choice_submission')
     option = models.ForeignKey(Option, on_delete=models.CASCADE, related_name='answer_options')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers_choice')
 
 
 class AnswerText(models.Model):
     """An answer a survey's text questions."""
-    submission = models.ForeignKey(Submission, on_delete=models.CASCADE)
+    submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='text_submission')
     question = models.ForeignKey(Question, on_delete=models.CASCADE,related_name='answers_text')
     comment = models.TextField()
 

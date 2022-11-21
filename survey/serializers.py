@@ -10,11 +10,6 @@ class OptionSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class SubmissionSerializer(ModelSerializer):
-    class Meta:
-        model = Submission
-        fields = '__all__'
-
 
 class AnswerChoiceSerializer(ModelSerializer):
 
@@ -34,8 +29,6 @@ class QuestionSerializer(ModelSerializer):
     question_options = OptionSerializer(many=True, read_only=True)
     # for i in range(len(options)):
     #     print(options[i])
-    answers_choice = AnswerChoiceSerializer(many=True, read_only=True)
-    answers_text = AnswerTextSerializer(many=True, read_only=True)
     class Meta:
         model = Question
         fields = '__all__'
@@ -47,4 +40,14 @@ class SurveySerializer(ModelSerializer):
     # user_name = serializers.ReadOnlyField()
     class Meta:
         model = Survey
-        fields = ['questions', 'title', 'is_active', 'created_at']
+        fields = ['questions', 'title', 'is_active', 'created_at', 'company', 'creator']
+
+
+class SubmissionSerializer(ModelSerializer):
+    survey = SurveySerializer(many=True, read_only=True)
+    choice_submission = AnswerChoiceSerializer(many=True, read_only=True)
+    text_submission = AnswerTextSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Submission
+        fields = '__all__'
