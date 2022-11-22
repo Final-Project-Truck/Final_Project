@@ -44,7 +44,7 @@ class SurveySerializer(ModelSerializer):
 
 
 class SubmissionSerializer(ModelSerializer):
-    survey = SurveySerializer(many=True, read_only=True)
+    # survey_submission = SurveySerializer(many=True, read_only=True)
     choice_submission = AnswerChoiceSerializer(many=True, read_only=True)
     text_submission = AnswerTextSerializer(many=True, read_only=True)
 
