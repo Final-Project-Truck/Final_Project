@@ -20,11 +20,10 @@ from django.contrib.auth import login
 from django.urls import path, include
 from rest_framework import routers
 
-from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet
+from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
-from user.views import registerPage, loginPage, logoutUser, home
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
