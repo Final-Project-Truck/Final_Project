@@ -9,6 +9,9 @@ class BaseUsers(models.Model):
     email = models.EmailField(max_length=100)
     django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
 
+    def __str__(self):
+        return f'{self.username}'
+
 
 class Profile(models.Model):
     base_user = models.OneToOneField(BaseUsers, on_delete=models.CASCADE, related_name='profile')

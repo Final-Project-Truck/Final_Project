@@ -81,6 +81,14 @@ WSGI_APPLICATION = 'The_Truck_Project.wsgi.application'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
 DATABASES = {
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    #     'NAME': 'test_database',
+    #     'USER': 'postgres',
+    #     'PASSWORD': 'TheShopProjectDB',
+    #     'HOST': '35.193.160.14',
+    #     'PORT': '5432'
+    # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'truck_project_test_db',

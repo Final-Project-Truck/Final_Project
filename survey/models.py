@@ -27,12 +27,16 @@ class Survey(models.Model):
 class Question(models.Model):
     """A question in a survey"""
 # Todo check for manytomany vs foreignkey--> Mathias suggested having it as manytomany
-    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='questions')
     prompt = models.CharField(max_length=128)
     type = models.CharField(max_length=3, choices=question_type)
 
     def __str__(self):
         return f'{self.prompt}'
+
+
+class SurveyQuestion(models.Model):
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='survey_question')
 
 
 class Option(models.Model):
@@ -48,7 +52,7 @@ class Option(models.Model):
 class Submission(models.Model):
     """A set of answers a survey's questions."""
 
-    survey = models.ForeignKey(Survey, on_delete=models.CASCADE)
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='survey_submission')
     created_at = models.DateTimeField(default=timezone.now)
     is_complete = models.BooleanField(default=False)
 
@@ -60,8 +64,9 @@ class AnswerChoice(models.Model):
     """An answer a survey's choice questions."""
 
     submission = models.ForeignKey(Submission, on_delete=models.CASCADE, related_name='choice_submission')
-    option = models.ForeignKey(Option, on_delete=models.CASCADE, related_name='answer_options')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers_choice')
+    option = models.ForeignKey(Option, on_delete=models.CASCADE, related_name='answer_options')
+
 
 
 class AnswerText(models.Model):
