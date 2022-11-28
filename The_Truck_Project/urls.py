@@ -23,7 +23,7 @@ from rest_framework import routers
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
-    AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
+    AnswerChoiceAPIViewSet, AnswerTextAPIViewSet, SurveyQuestionAPIViewSet
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
@@ -32,6 +32,7 @@ router.register(r'companies', CompanyAPIViewSet)
 
 router.register(r'survey', SurveyAPIViewSet)
 router.register(r'questions', QuestionAPIViewSet)
+router.register(r'survey_questions', SurveyQuestionAPIViewSet)
 router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
