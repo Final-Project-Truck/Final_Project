@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 from baseuser.models import BaseUsers
 from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
 from baseuser.forms import CreateUserForm
-from baseuser.models import taskuser
+from baseuser.models import BaseUsers
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -20,13 +20,17 @@ class BaseUsersAPIViewSet(ModelViewSet):
         serializer = BaseUsersSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         username = serializer.data['username']
-        password = serializer.data['password']
+        password1 = serializer.data['password1']
+        password2 = serializer.data['password2']
         email = serializer.data['email']
 
         with transaction.atomic():
-            django_user = User.objects.create_user(username=username, password=password, email=email)
-            base_user = BaseUsers.objects.create(**serializer.data, django_user=django_user)
-            return Response(BaseUsersSerializer(base_user).data, status=201)
+            if password1 == password2: #Todo check password 'field level validation'
+                django_user = User.objects.create_user(username=username, password=password2, email=email)
+                base_user = BaseUsers.objects.create(**serializer.data, django_user=django_user)
+                return Response(BaseUsersSerializer(base_user).data, status=201)
+            else:
+                return Response('Error in password', status=400)
 
 
 class BaseUsersSafeAPIViewSet(ListAPIView):
@@ -42,12 +46,12 @@ def registerPage(request, django_user=None):
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-                form.save()
+
                 with transaction.atomic():
-                    #django_user = User.objects.create_user(username, email, password)
-                    user = taskuser.objects.create(**form.cleaned_data)
-                    django_user = form.cleaned_data.get('username')
-                messages.success(request, 'Account was created for ' + django_user)
+                    form.save()
+                    djangouser = User.objects.get(email=form.cleaned_data['email'])
+                    BaseUsers.objects.create(**form.cleaned_data, django_user_id = djangouser.id)
+                messages.success(request, 'Account was created for ' + djangouser.username)
 
                 return redirect('login')
 
