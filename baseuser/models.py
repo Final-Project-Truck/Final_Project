@@ -3,14 +3,26 @@ from django.db import models
 from company.models import Company
 
 
+# class BaseUsers(models.Model):
+#     username = models.CharField(max_length=100, unique=True)
+#     password = models.CharField(max_length=100)
+#     password2 = models.CharField(max_length=200)
+#     email = models.EmailField(max_length=100)
+#     django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
+#     #date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+
 class BaseUsers(models.Model):
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100)
-    email = models.EmailField(max_length=100)
+    username = models.CharField(max_length=200, null=True)
+    password1 = models.CharField(max_length=200, null=True)
+    password2 = models.CharField(max_length=200, null=True)
+    email = models.EmailField(max_length=200, null=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True)
     django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
 
     def __str__(self):
         return f'{self.username}'
+
 
 
 class Profile(models.Model):

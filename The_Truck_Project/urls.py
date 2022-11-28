@@ -13,11 +13,14 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from atexit import register
+
 from django.contrib import admin
+from django.contrib.auth import login
 from django.urls import path, include
 from rest_framework import routers
 
-from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet
+from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet, SurveyQuestionAPIViewSet
@@ -36,8 +39,12 @@ router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
 
 urlpatterns = [
+    path('', home, name="home"),
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include(router.urls)),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
+    path('register/', registerPage, name="register"),
+    path('login/', loginPage, name="login"),
+    path('logout/', logoutUser, name="logout"),
 ]

@@ -6,7 +6,7 @@ from baseuser.models import BaseUsers
 class BaseUsersSafeSerializer(ModelSerializer):
     class Meta:
         model = BaseUsers
-        exclude = ['django_user', 'password']
+        exclude = ['django_user', 'password1', 'password2']
 
 
 class BaseUsersSerializer(ModelSerializer):
