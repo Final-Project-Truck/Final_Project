@@ -2,7 +2,9 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.http import Http404
 from django.shortcuts import render, redirect
+from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -32,6 +34,43 @@ class BaseUsersAPIViewSet(ModelViewSet):
             else:
                 return Response('Error in password', status=400)
 
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        baseuser = self.get_object()
+        serializer = self.get_serializer(baseuser, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            self.perform_update(serializer, baseuser)
+
+        if getattr(baseuser, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            baseuser._prefetched_objects_cache = {}
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer, baseuser):
+        with transaction.atomic():
+            User.objects.filter(pk=baseuser.id).update(username=serializer.validated_data['username'],
+                                                       password=serializer.validated_data["password1"],
+                                                       email=serializer.validated_data["email"]
+                                                       )
+        serializer.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        baseuser = self.get_object()
+        self.perform_destroy(baseuser)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, baseuser):
+        with transaction.atomic():
+            django_user = User.objects.filter(pk=baseuser.django_user_id)
+            baseuser.delete()
+            django_user.delete()
 
 class BaseUsersSafeAPIViewSet(ListAPIView):
     queryset = BaseUsers.objects.all()
