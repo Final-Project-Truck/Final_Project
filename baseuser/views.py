@@ -2,16 +2,16 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.http import Http404
 from django.shortcuts import render, redirect
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from baseuser.models import BaseUsers
-from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
+
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUsers
+from baseuser.models import BaseUsers, Profile
+from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
+from baseuser.serializers import ProfileSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -127,3 +127,8 @@ def logoutUser(request):
 def home(request):
 
     return render(request, 'home.html')
+
+
+class ProfileUserAPIViewSet(ModelViewSet):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
