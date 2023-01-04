@@ -16,7 +16,7 @@ class Survey(models.Model):
 
     title = models.CharField(max_length=64)
     is_active = models.BooleanField(default=False)
-    creator = models.ForeignKey(BaseUsers, on_delete=models.CASCADE)
+    creator = models.ForeignKey(BaseUsers, on_delete=models.CASCADE, null=True)
     company = models.ForeignKey(Company, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
