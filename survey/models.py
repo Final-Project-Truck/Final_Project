@@ -55,9 +55,10 @@ class Submission(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='survey_submission')
     created_at = models.DateTimeField(default=timezone.now)
     is_complete = models.BooleanField(default=False)
+    submitter = models.ForeignKey(BaseUsers, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.survey}'
+        return f'{self.submitter} made submission to {self.survey}'
 
 
 class AnswerChoice(models.Model):
