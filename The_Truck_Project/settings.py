@@ -142,3 +142,13 @@ MEDIA_URL = '/media/'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'tryharderbruhhh@gmail.com'
+# You will have to create a Google email or use your email to test it out, make sure to enable "2 step-verification"
+# in your email settings and add "app password" then choose "custom" name it with "Django Mail" then generate the
+# password and post it under here.
+EMAIL_HOST_PASSWORD = 'mirwxaargctvngvf'
