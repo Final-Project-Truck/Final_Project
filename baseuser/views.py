@@ -1,6 +1,8 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
 from django.db import transaction
 from django.shortcuts import render, redirect
 from rest_framework import status
@@ -27,7 +29,7 @@ class BaseUsersAPIViewSet(ModelViewSet):
         email = serializer.data['email']
 
         with transaction.atomic():
-            if password1 == password2: #Todo check password 'field level validation'
+            if password1 == password2:  # Todo check password 'field level validation'
                 django_user = User.objects.create_user(username=username, password=password2, email=email)
                 base_user = BaseUsers.objects.create(**serializer.data, django_user=django_user)
                 return Response(BaseUsersSerializer(base_user).data, status=201)
@@ -72,6 +74,7 @@ class BaseUsersAPIViewSet(ModelViewSet):
             baseuser.delete()
             django_user.delete()
 
+
 class BaseUsersSafeAPIViewSet(ListAPIView):
     queryset = BaseUsers.objects.all()
     serializer_class = BaseUsersSafeSerializer
@@ -85,18 +88,22 @@ def registerPage(request, django_user=None):
         if request.method == 'POST':
             form = CreateUserForm(request.POST)
             if form.is_valid():
-
                 with transaction.atomic():
-                    form.save()
+                    user = form.save()
                     djangouser = User.objects.get(email=form.cleaned_data['email'])
-                    BaseUsers.objects.create(**form.cleaned_data, django_user_id = djangouser.id)
+                    BaseUsers.objects.create(**form.cleaned_data, django_user_id=djangouser.id)
                 messages.success(request, 'Account was created for ' + djangouser.username)
-
-                return redirect('login')
-
-        context = {'form': form}
-
-        return render(request, 'register.html', context)
+                send_mail(
+                    'Register Completed',  # Change your Subject
+                    'Thank you for joining our Website',  # Change your message
+                    'Final_Truck_Project@gmail.com',  # Put the email your going to use
+                    [user.email],
+                    fail_silently=False
+                )
+                return redirect('home')
+        else:
+            form = CreateUserForm()
+        return render(request, 'register.html', {'form': form})
 
 
 def loginPage(request):
@@ -125,7 +132,6 @@ def logoutUser(request):
 
 
 def home(request):
-
     return render(request, 'home.html')
 
 
