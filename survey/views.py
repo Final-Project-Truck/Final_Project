@@ -36,7 +36,7 @@ class SurveyAPIViewSet(ModelViewSet):
                 survey = Survey.objects.create(title=title, created_at=created_at, company_id=company, creator_id=creator,
                                       is_active=is_active)
                 survey.save()
-                 """Template Question 1"""
+                """Template Question 1"""
                 template_question_1 = Question.objects.create(prompt="Question 1", type='cho', template_question=True)
                 template_question_1.save()
                 template_question_1_option_1 = Option.objects.create(question=template_question_1, text="True")
