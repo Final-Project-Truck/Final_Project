@@ -30,7 +30,7 @@ class QuestionSerializer(ModelSerializer):
     #     print(options[i])
     class Meta:
         model = Question
-        fields = '__all__'
+        exclude = ['template_question']
 
 
 class SurveySerializer(ModelSerializer):
