@@ -1,1 +1,34 @@
-<h1> Home </h1>
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+html {
+			margin: 0;
+			padding: 0;
+			height: 100%;
+			background: lightblue !important;
+		}
+.wlc {
+    position: absolute;
+    top: 6%;
+    left: 50%;
+    transform: translate(-50%,-50%); /* Move up by 50% of the element's height */
+}
+.wlc-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+.wlc1 {
+    position: absolute;
+    top: 10%;
+    left: 50%;
+    transform: translate(-50%,-50%); /* Move up by 50% of the element's height */
+}
+</style>
+    <div class="wlc-container">
+        <h1 class="wlc">Welcome to the final project</h1>
+        <p class="wlc1">This is the home page.</p>
+    </div>
+{% endblock %}

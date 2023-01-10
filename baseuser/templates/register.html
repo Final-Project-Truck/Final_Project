@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
 <html>
 
 <head>
@@ -20,7 +22,8 @@
 			margin-top: auto;
 			margin-bottom: auto;
 			background: #1BBAFF;
-			position: relative;
+			position: absolute;
+			top: 400px;
 			display: flex;
 			justify-content: center;
 			flex-direction: column;
@@ -62,39 +65,81 @@
 			box-shadow: none !important;
 			outline: 0px !important;
 		}
+		.container {
+  position: relative; /* This is needed for the child elements to be positioned relatively to this container */
+}
+
+.forgot-password {
+  position: absolute; /* This positions the element absolutely */
+  top: 0; /* This positions the element at the top of the container */
+  left: 0; /* This positions the element at the left of the container */
+  z-index: 2; /* This sets the stack order of the element to 2 */
+}
+
+.already-have-account {
+  z-index: 1; /* This sets the stack order of the element to 1 */
+}
 
 	</style>
 
 </head>
 <body>
     <div class="container h-100">
-        <div class="d-flex justify-content-center h-100">
-            <div class="user_card">
-                <div class="d-flex justify-content-center">
-                    <h3 id="form-title">REGISTER ACCOUNT</h3>
-                </div>
-                <div class="d-flex justify-content-center form_container">
-                    <form method="POST" action="">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            {{ form.as_p }}
-                        </div>
-                        <div class="d-flex justify-content-center mt-3 login_container">
-                            <button type="submit" name="register" class="btn login_btn">Create Account</button>
-                        </div>
-                        <div class="d-flex justify-content-center mt-3 login_container">
-                            <a href="{% url 'forget_password' %}" class="btn login_btn">Forgot Password</a>
-                        </div>
-                    </form>
-                </div>
-                <div class="mt-4">
-                    <div class="d-flex justify-content-center links">
-                        Already have an account? <a href="{% url 'login' %}" class="ml-2">Login</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+		<div class="d-flex justify-content-center h-100">
+			<div class="user_card">
+				<div class="d-flex justify-content-center">
+					<h3 id="form-title">REGISTER ACCOUNT</h3>
+				</div>
+				<div class="d-flex justify-content-center form_container">
+
+					<form method="POST" action="">
+						{% csrf_token %}
+						<div class="input-group mb-3">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-user"></i></span>
+							</div>
+							{{form.username}}
+						</div>
+						<div class="input-group mb-2">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-envelope-square"></i></span>
+							</div>
+							{{form.email}}
+						</div>
+						<div class="input-group mb-2">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-key"></i></span>
+							</div>
+							{{form.password1}}
+						</div>
+						<div class="input-group mb-2">
+							<div class="input-group-append">
+								<span class="input-group-text"><i class="fas fa-key"></i></span>
+							</div>
+							{{form.password2}}
+						</div>
+
+				   		<div class="d-flex justify-content-center mt-3 login_container">
+				 			<input class="btn login_btn" type="submit" value="Register Account">
+				   		</div>
+
+
+					</form>
+				</div>
+
+				{{form.errors}}
+
+				    <div class="mt-4">
+						<div class="d-flex justify-content-center links">
+                            Forgot your password?<a href="{% url 'password_reset' %}" class="ml-2">Forgot Password</a>
+                    	</div>
+					<div class="d-flex justify-content-center links">
+						Already have an account? <a href="{% url 'login' %}" class="ml-2">Login</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
     <script>
         /* Because i didnt set placeholder values in forms.py they will be set here using vanilla Javascript */
 
@@ -104,7 +149,9 @@
         form_fields[2].placeholder='Email..';
         form_fields[3].placeholder='Password..';
         form_fields[4].placeholder='Password Confirmation..';
+
     </script>
 </body>
-</body>
+
 </html>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% load static %}
+<html>
+<head>
+    <title>{% block title %}{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}">
+</head>
+<body>
+<style>
+header{
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translate(-50%,-50%);
+}
+.box {
+  width: 400px; /* Width of the box */
+  height: 50px; /* Height of the box */
+  background-color: #f5f5f5; /* Background color of the box */
+  border: 1px solid #ccc; /* Border of the box */
+  display: flex; /* Make the child elements inside the box align horizontally */
+  align-items: center; /* Align the child elements vertically */
+  justify-content: space-around; /* Distribute the space between the child elements */
+  padding: 10px; /* Add some padding to the box */
+}
+
+homebutton{
+    position: absolute;
+    right: 0px;
+}
+loginbutton{
+    position: absolute;
+    right: px;
+}
+registerbutton{
+  display: inline-block; /* Make the buttons appear on the same line */
+  padding: 50px 50px; /* Add some padding to the buttons */
+  position: absolute;
+  right: 0px;
+}
+
+</style>
+<header>
+    {% if user.is_authenticated %}
+    <a href="{% url 'home' %}">Home</a>/
+    <a href="{% url 'logout' %}">Logout</a>
+{% else %}
+    <a href="{% url 'home' %}">Home</a>/
+    <a href="{% url 'login' %}">Login</a> /
+    <a href="{% url 'register' %}">Register</a>
+{% endif %}
+
+
+</header>
+<div class="container">
+    {% block content %}{% endblock %}
+</div>
+</footer>
+</body>
+</html>

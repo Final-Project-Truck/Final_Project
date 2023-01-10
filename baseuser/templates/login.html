@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
 <html>
 
 <head>
@@ -22,6 +24,7 @@
 			margin-bottom: auto;
 			background: #1BBAFF;
 			position: relative;
+			top: 400px;
 			display: flex;
 			justify-content: center;
 			flex-direction: column;
@@ -116,6 +119,9 @@
 
 				<div class="mt-4">
 					<div class="d-flex justify-content-center links">
+                            Forgot your password?<a href="{% url 'password_reset' %}" class="ml-2">Forgot Password</a>
+                    </div>
+					<div class="d-flex justify-content-center links">
 						Don't have an account? <a href="{% url 'register' %}" class="ml-2">Sign Up</a>
 					</div>
 
@@ -126,3 +132,4 @@
 </body>
 
 </html>
+{% endblock %}
