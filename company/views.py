@@ -25,7 +25,7 @@ class CompanyAPIViewSet(ModelViewSet):
 
 
             """Template Question 1"""
-            template_question_1 = Question.objects.create(prompt="Question 1", type='cho')
+            template_question_1 = Question.objects.create(prompt="Question 1", type='cho', template_question=True)
             template_question_1.save()
             template_question_1_option_1 = Option.objects.create(question=template_question_1, text="True")
             template_question_1_option_1.save()
@@ -34,7 +34,7 @@ class CompanyAPIViewSet(ModelViewSet):
             # related to template question 1
 
             """Template Question 2"""
-            template_question_2 = Question.objects.create(prompt="Question 2", type='cho')
+            template_question_2 = Question.objects.create(prompt="Question 2", type='cho', template_question=True)
             template_question_2.save()
             template_question_2_option_1 = Option.objects.create(question=template_question_2, text="Strongly Agree")
             template_question_2_option_1.save()
@@ -48,7 +48,7 @@ class CompanyAPIViewSet(ModelViewSet):
             template_question_2_option_5.save()
 
             """Template Question 3"""
-            template_question_3 = Question.objects.create(prompt="Question 3", type='txt')
+            template_question_3 = Question.objects.create(prompt="Question 3", type='txt', template_question=True)
             template_question_3.save()
 
             """Combine Template Questions with Company Survey"""

@@ -29,6 +29,7 @@ class Question(models.Model):
 # Todo check for manytomany vs foreignkey--> Mathias suggested having it as manytomany
     prompt = models.CharField(max_length=128)
     type = models.CharField(max_length=3, choices=question_type)
+    template_question = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.prompt}'
