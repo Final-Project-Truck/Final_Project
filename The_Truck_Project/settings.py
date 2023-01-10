@@ -10,11 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
@@ -26,7 +26,6 @@ SECRET_KEY = 'django-insecure-c*8se8*^gtx7e=pm1v^-i$6xd=+t2n9d&y8=bmnh%%0azumyw_
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -43,6 +42,7 @@ INSTALLED_APPS = [
     'company',
     'survey',
     'analytics',
+    'django.contrib.auth.password_validation'
 ]
 
 MIDDLEWARE = [
@@ -76,7 +76,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'The_Truck_Project.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
@@ -99,7 +98,6 @@ DATABASES = {
     }
 }
 
-
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
 
@@ -118,7 +116,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
 
@@ -129,7 +126,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -147,8 +143,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_USE_TLS = True
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
-EMAIL_HOST_USER = 'tryharderbruhhh@gmail.com'
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 # You will have to create a Google email or use your email to test it out, make sure to enable "2 step-verification"
 # in your email settings and add "app password" then choose "custom" name it with "Django Mail" then generate the
-# password and post it under here.
-EMAIL_HOST_PASSWORD = 'mirwxaargctvngvf'
+# password and post it under here. update: you need to install "pip install python-decouple" i added "from decouple
+# import config" here that's all you need to do to hide the password
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')

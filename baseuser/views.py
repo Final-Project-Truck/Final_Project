@@ -1,10 +1,15 @@
-from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import views as auth_views, get_user_model
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
+from django.contrib import messages
 from django.conf import settings
 from django.db import transaction
+from django.urls import reverse_lazy, path, reverse
 from django.shortcuts import render, redirect
+from django.utils.encoding import force_bytes, force_str as force_text
+from django.utils.http import urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
@@ -96,7 +101,7 @@ def registerPage(request, django_user=None):
                 send_mail(
                     'Register Completed',  # Change your Subject
                     'Thank you for joining our Website',  # Change your message
-                    'Final_Truck_Project@gmail.com',  # Put the email your going to use
+                    'tryharderbruhhh@gmail.com',  # Put the email your going to use
                     [user.email],
                     fail_silently=False
                 )
@@ -104,6 +109,34 @@ def registerPage(request, django_user=None):
         else:
             form = CreateUserForm()
         return render(request, 'register.html', {'form': form})
+
+
+def forget_password(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        try:
+            user = User.objects.get(email=email)
+            if user.is_active:
+                token = default_token_generator.make_token(user)
+                email_body = f'Please click the link below to reset your password: \n' \
+                             f'http://{request.get_host()}{reverse("password_reset_confirm", kwargs={"token": token, "uidb64": urlsafe_base64_encode(force_bytes(user.pk))})}'
+                send_mail(
+                    'Password reset on your account',
+                    email_body,
+                    'tryharderbruhhh@gmail.com',
+                    [user.email],
+                    fail_silently=False,
+                )
+                messages.success(request, f'An email has been sent to {email} to reset your password.')
+                return redirect('login')
+            else:
+                messages.error(request, 'Your account has been deactivated. Please contact the administrator.')
+                return redirect('forget_password')
+        except User.DoesNotExist:
+            messages.error(request, f'No account found with email {email}.')
+            return redirect('forget_password')
+    else:
+        return render(request, 'forget_password.html')
 
 
 def loginPage(request):
