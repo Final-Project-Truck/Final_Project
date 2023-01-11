@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('company', '0001_initial'),
     ]
@@ -14,11 +13,16 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='JobDescription',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False,
+                                           verbose_name='ID')),
                 ('name', models.CharField(max_length=100)),
                 ('description', models.TextField(max_length=300)),
                 ('salary', models.CharField(max_length=20)),
-                ('job_title', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='company', to='company.company')),
+                ('job_title',
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
+                                   related_name='company',
+                                   to='company.company')),
             ],
         ),
     ]

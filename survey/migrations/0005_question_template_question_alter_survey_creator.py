@@ -5,9 +5,9 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('baseuser', '0004_remove_baseusers_password_baseusers_date_created_and_more'),
+        ('baseuser',
+         '0004_remove_baseusers_password_baseusers_date_created_and_more'),
         ('survey', '0004_submission_submitter'),
     ]
 
@@ -20,6 +20,9 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='survey',
             name='creator',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='baseuser.baseusers'),
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='baseuser.baseusers'),
         ),
     ]

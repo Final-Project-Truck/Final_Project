@@ -1,7 +1,7 @@
-from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
-from survey.models import Survey, Question, Option, Submission, AnswerChoice, AnswerText, SurveyQuestion
+from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
+    AnswerText, SurveyQuestion
 
 
 class OptionSerializer(ModelSerializer):
@@ -26,6 +26,7 @@ class AnswerTextSerializer(ModelSerializer):
 
 class QuestionSerializer(ModelSerializer):
     question_options = OptionSerializer(many=True, read_only=True)
+
     # for i in range(len(options)):
     #     print(options[i])
     class Meta:
@@ -41,8 +42,10 @@ class SurveySerializer(ModelSerializer):
         model = Survey
         fields = '__all__'
 
+
 class SurveyQuestionSerializer(ModelSerializer):
     survey_question = QuestionSerializer(many=True, read_only=True)
+
     class Meta:
         model = SurveyQuestion
         fields = '__all__'

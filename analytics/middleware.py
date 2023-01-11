@@ -1,4 +1,3 @@
-import django.urls
 from analytics.models import RequestCounter
 
 

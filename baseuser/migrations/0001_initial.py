@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -18,22 +17,45 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='BaseUsers',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('username', models.CharField(max_length=100, unique=True)),
+                ('id', models.BigAutoField(auto_created=True,
+                                           primary_key=True,
+                                           serialize=False,
+                                           verbose_name='ID')),
+                ('username', models.CharField(max_length=100,
+                                              unique=True)),
                 ('password', models.CharField(max_length=100)),
                 ('email', models.EmailField(max_length=100)),
-                ('django_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='baseuser', to=settings.AUTH_USER_MODEL)),
+                ('django_user', models.OneToOneField(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='baseuser',
+                    to=settings.AUTH_USER_MODEL)),
             ],
         ),
         migrations.CreateModel(
             name='Profile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('picture', models.ImageField(default='tinyurl.com/2a382vsm', upload_to='profile_images')),
-                ('about', models.TextField(max_length=250, null=True)),
-                ('base_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to='baseuser.baseusers')),
-                ('current_company', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='current_company', to='company.company')),
-                ('past_companies', models.ManyToManyField(blank=True, null=True, related_name='past_companies', to='company.company')),
+                ('id', models.BigAutoField(auto_created=True,
+                                           primary_key=True,
+                                           serialize=False,
+                                           verbose_name='ID')),
+                ('picture', models.ImageField(default='tinyurl.com/2a382vsm',
+                                              upload_to='profile_images')),
+                ('about', models.TextField(max_length=250,
+                                           null=True)),
+                ('base_user', models.OneToOneField(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='profile',
+                    to='baseuser.baseusers')),
+                ('current_company', models.ForeignKey(
+                    blank=True, null=True,
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='current_company',
+                    to='company.company')),
+                (
+                    'past_companies',
+                    models.ManyToManyField(blank=True, null=True,
+                                           related_name='past_companies',
+                                           to='company.company')),
             ],
         ),
     ]

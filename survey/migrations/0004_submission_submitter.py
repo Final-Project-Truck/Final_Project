@@ -5,9 +5,9 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('baseuser', '0004_remove_baseusers_password_baseusers_date_created_and_more'),
+        ('baseuser',
+         '0004_remove_baseusers_password_baseusers_date_created_and_more'),
         ('survey', '0003_alter_submission_survey_and_more'),
     ]
 
@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='submission',
             name='submitter',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='baseuser.baseusers'),
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                to='baseuser.baseusers'),
             preserve_default=False,
         ),
     ]

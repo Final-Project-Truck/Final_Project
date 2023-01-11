@@ -18,11 +18,13 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 
-from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, ProfileUserAPIViewSet
+from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
+    ProfileUserAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
-from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
+from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
+    OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
 
