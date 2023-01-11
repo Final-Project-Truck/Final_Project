@@ -155,4 +155,3 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 # password and post it under here. update: you need to install "pip install python-decouple" i added "from decouple
 # import config" here that's all you need to do to hide the password
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
-
