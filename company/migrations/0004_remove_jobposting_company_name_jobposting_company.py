@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('company', '0003_jobposting_delete_jobdescription'),
     ]
@@ -18,7 +17,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='jobposting',
             name='company',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='jobs', to='company.company'),
+            field=models.ForeignKey(
+                default=1,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='jobs', to='company.company'),
             preserve_default=False,
         ),
     ]

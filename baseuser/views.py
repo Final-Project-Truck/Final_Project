@@ -2,7 +2,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
-from django.conf import settings
 from django.db import transaction
 from django.shortcuts import render, redirect
 from rest_framework import status
@@ -27,19 +26,24 @@ class BaseUsersAPIViewSet(ModelViewSet):
         password1 = serializer.data['password1']
         password2 = serializer.data['password2']
         email = serializer.data['email']
-
+        # Todo check password 'field level validation'
         with transaction.atomic():
-            if password1 == password2:  # Todo check password 'field level validation'
-                django_user = User.objects.create_user(username=username, password=password2, email=email)
-                base_user = BaseUsers.objects.create(**serializer.data, django_user=django_user)
-                return Response(BaseUsersSerializer(base_user).data, status=201)
+            if password1 == password2:
+                django_user = User.objects.create_user(username=username,
+                                                       password=password2,
+                                                       email=email)
+                base_user = BaseUsers.objects.create(**serializer.data,
+                                                     django_user=django_user)
+                return Response(BaseUsersSerializer(base_user).data,
+                                status=201)
             else:
                 return Response('Error in password', status=400)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         baseuser = self.get_object()
-        serializer = self.get_serializer(baseuser, data=request.data, partial=partial)
+        serializer = self.get_serializer(baseuser, data=request.data,
+                                         partial=partial)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
             self.perform_update(serializer, baseuser)
@@ -53,10 +57,11 @@ class BaseUsersAPIViewSet(ModelViewSet):
 
     def perform_update(self, serializer, baseuser):
         with transaction.atomic():
-            User.objects.filter(pk=baseuser.id).update(username=serializer.validated_data['username'],
-                                                       password=serializer.validated_data["password1"],
-                                                       email=serializer.validated_data["email"]
-                                                       )
+            User.objects.filter(pk=baseuser.id).update(
+                username=serializer.validated_data['username'],
+                password=serializer.validated_data["password1"],
+                email=serializer.validated_data["email"]
+                )
         serializer.save()
 
     def partial_update(self, request, *args, **kwargs):
@@ -90,13 +95,18 @@ def registerPage(request, django_user=None):
             if form.is_valid():
                 with transaction.atomic():
                     user = form.save()
-                    djangouser = User.objects.get(email=form.cleaned_data['email'])
-                    BaseUsers.objects.create(**form.cleaned_data, django_user_id=djangouser.id)
-                messages.success(request, 'Account was created for ' + djangouser.username)
+                    djangouser = User.objects.get(
+                        email=form.cleaned_data['email'])
+                    BaseUsers.objects.create(**form.cleaned_data,
+                                             django_user_id=djangouser.id)
+                messages.success(request,
+                                 'Account was created for ' +
+                                 djangouser.username)
                 send_mail(
                     'Register Completed',  # Change your Subject
                     'Thank you for joining our Website',  # Change your message
-                    'Final_Truck_Project@gmail.com',  # Put the email your going to use
+                    'Final_Truck_Project@gmail.com',
+                    # Put the email your going to use
                     [user.email],
                     fail_silently=False
                 )

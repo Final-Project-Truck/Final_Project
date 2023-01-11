@@ -22,3 +22,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           python -m pip install coverage
+          python -m pip install flake8
+      - name: Coding Style
+        run: |
+          flake8 --exclude venv,manage.py

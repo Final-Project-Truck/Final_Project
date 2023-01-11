@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('survey', '0001_initial'),
     ]
@@ -14,11 +13,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='answerchoice',
             name='submission',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='choice_submission', to='survey.submission'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='choice_submission', to='survey.submission'),
         ),
         migrations.AlterField(
             model_name='answertext',
             name='submission',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='text_submission', to='survey.submission'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='text_submission', to='survey.submission'),
         ),
     ]
