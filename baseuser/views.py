@@ -132,7 +132,7 @@ def forget_password(request):
                 email_body = f'Please click the link below to reset your ' \
                              f'password: \n' \ 
                              f'http://{request.get_host()}' \
-f'{reverse("password_reset_confirm", kwargs={"token": token, "uidb64": urlsafe_base64_encode(force_bytes(user.pk))})}'
+                             f'{reverse("password_reset_confirm", kwargs={"token": token, "uidb64": urlsafe_base64_encode(force_bytes(user.pk))})}'
                 send_mail(
                     'Password reset on your account',
                     email_body,
