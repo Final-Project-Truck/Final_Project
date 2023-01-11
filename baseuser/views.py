@@ -129,10 +129,8 @@ def forget_password(request):
             user = User.objects.get(email=email)
             if user.is_active:
                 token = default_token_generator.make_token(user)
-                email_body = f'Please click the link below to reset your ' \
-                             f'password: \n' \ 
-                             f'http://{request.get_host()}' \
-                             f'{reverse("password_reset_confirm", kwargs={"token": token, "uidb64": urlsafe_base64_encode(force_bytes(user.pk))})}'
+                email_body = f'Please click the link below to reset your password: \n' \
+                             f'http://{request.get_host()}{reverse("password_reset_confirm", kwargs={"token": token, "uidb64": urlsafe_base64_encode(force_bytes(user.pk))})}'
                 send_mail(
                     'Password reset on your account',
                     email_body,

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Company
+from .models import BaseCompany
 
 
 class CompanyRegistrationForm(forms.ModelForm):
@@ -7,6 +7,6 @@ class CompanyRegistrationForm(forms.ModelForm):
     confirm_password = forms.CharField(widget=forms.PasswordInput())
 
     class Meta:
-        model = Company
+        model = BaseCompany
         fields = ['name', 'email', 'password', 'confirm_password',
                   'phone_number', 'address', 'legal_papers']

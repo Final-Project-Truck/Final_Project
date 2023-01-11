@@ -22,7 +22,7 @@ class Profile(models.Model):
     current_company = models.ForeignKey(Company, null=True, blank=True,
                                         on_delete=models.CASCADE,
                                         related_name='current_company')
-    past_companies = models.ManyToManyField(Company, null=True, blank=True,
+    past_companies = models.ManyToManyField(Company, blank=True,
                                             related_name='past_companies')
     picture = models.ImageField(upload_to='profile_images',
                                 default='tinyurl.com/2a382vsm')
