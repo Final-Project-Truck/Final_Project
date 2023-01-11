@@ -27,6 +27,8 @@ from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
+from company.views import register_company
+from company.views import verify_company
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
@@ -46,7 +48,7 @@ router.register(r'text_answers', AnswerTextAPIViewSet)
 urlpatterns = [
     path('', home, name="home"),
     path('api-auth/', include('rest_framework.urls')),
-    path('api/v1/', include(router.urls)),
+    path('api/v1/', include(router.urls), name="api"),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
     path('register/', registerPage, name="register"),
@@ -56,4 +58,6 @@ urlpatterns = [
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(template_name='password_reset_done.html'),name='password_reset_done'),
     path('reset/<uidb64>/<token>/',auth_views.PasswordResetConfirmView.as_view(template_name='password_reset_confirm.html'),name='password_reset_confirm'),
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='password_reset_complete.html'),name='password_reset_complete'),
+    path('register_company/', register_company, name='register_company'),
+    path('verify_company/<int:pk>/', verify_company, name='verify_company'),
 ]
