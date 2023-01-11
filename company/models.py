@@ -16,3 +16,4 @@ class JobPosting(models.Model):
     description = models.TextField(max_length=300)
     salary = models.CharField(max_length=20)
 
+
