@@ -6,6 +6,7 @@ from rest_framework.viewsets import ModelViewSet
 from company.models import Company, JobPosting
 from company.serializers import CompanySerializer, JobPostingSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
+
 from .forms import UserRegistrationForm, CompanyRegistrationForm
 
 class CompanyAPIViewSet(ModelViewSet):

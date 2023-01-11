@@ -1,9 +1,9 @@
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth import views as auth_views, get_user_model
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.contrib import messages
 from django.conf import settings
 from django.db import transaction
 from django.urls import reverse_lazy, path, reverse

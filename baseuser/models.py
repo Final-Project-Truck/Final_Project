@@ -24,6 +24,7 @@ class BaseUsers(models.Model):
         return f'{self.username}'
 
 
+
 class Profile(models.Model):
     base_user = models.OneToOneField(BaseUsers, on_delete=models.CASCADE, related_name='profile')
     current_company = models.ForeignKey(Company, null=True, blank=True, on_delete=models.CASCADE,

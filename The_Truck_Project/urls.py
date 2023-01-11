@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
+
 from baseuser import views
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, ProfileUserAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutUser, home
