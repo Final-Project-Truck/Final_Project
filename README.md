@@ -1,6 +1,6 @@
 # Final_Project
 
-- Class final project_Lama_Peter_Divya_Fares_Igor
+- Class final project_Peter_alone_and_only_me
 
 
 App for truck drivers (or others jobs with a competitive market Eg. programmers) looking for another job
