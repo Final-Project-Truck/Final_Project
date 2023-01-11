@@ -1,10 +1,14 @@
 from django.db import transaction
+from django.shortcuts import render, redirect
+from django.contrib.auth.hashers import make_password
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from company.models import Company, JobPosting
 from company.serializers import CompanySerializer, JobPostingSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
+
+from company.forms import CompanyRegistrationForm
 
 
 class CompanyAPIViewSet(ModelViewSet):
@@ -81,3 +85,27 @@ class CompanyAPIViewSet(ModelViewSet):
 class JobPostingAPIViewSet(ModelViewSet):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
+
+
+def register_company(request):
+    if request.method == 'POST':
+        form = CompanyRegistrationForm(request.POST, request.FILES)
+        if form.is_valid():
+            company = form.save(commit=False)  # this line to create object but
+            # not saving it yet
+            password = form.cleaned_data.get('password')
+            company.password = make_password(password)
+            company.save()  # saving object after setting the hashed password
+            # Send an email to the company for verification process
+            return redirect('home')
+    else:
+        form = CompanyRegistrationForm()
+    return render(request, 'register_company.html', {'form': form})
+
+
+def verify_company(request, pk):
+    company = Company.objects.get(pk=pk)
+    company.is_verified = True
+    company.save()
+    # Send an email to the company to notify that the account has been verified
+    return redirect('home')
