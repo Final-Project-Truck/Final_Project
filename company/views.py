@@ -1,12 +1,12 @@
 from django.db import transaction
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from company.models import Company, JobPosting
 from company.serializers import CompanySerializer, JobPostingSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
-
+from .forms import UserRegistrationForm, CompanyRegistrationForm
 
 class CompanyAPIViewSet(ModelViewSet):
     queryset = Company.objects.all()
@@ -69,3 +69,24 @@ class CompanyAPIViewSet(ModelViewSet):
 class JobPostingAPIViewSet(ModelViewSet):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
+
+
+def register(request):
+    if request.method == 'POST':
+        if 'company_submit' in request.POST:
+            form = CompanyRegistrationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                company = form.save(commit=False)
+                company.user = user
+                company.save()
+                return redirect('login')
+        else:
+            form = UserRegistrationForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('login')
+    else:
+        user_form = UserRegistrationForm()
+        company_form = CompanyRegistrationForm()
+    return render(request, 'register.html', {'user_form': user_form, 'company_form': company_form})
