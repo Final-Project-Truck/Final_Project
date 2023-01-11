@@ -77,8 +77,8 @@ class SurveyAPIViewSet(ModelViewSet):
     If todo isdone, we need not overwrite the update method, else 
     Update is_active=True only if questions are added to a survey 
     '''
-    def update(self, request, *args, **kwargs):
-        pass
+    # def update(self, request, *args, **kwargs):
+    #     pass
 
                       
 class QuestionAPIViewSet(ModelViewSet):
@@ -87,8 +87,8 @@ class QuestionAPIViewSet(ModelViewSet):
 
 #todo if implementation of template questions are done, check if only user created
 #todo questions can be edited but not the template questions
-    def update(self, request, *args, **kwargs):
-        pass
+    # def update(self, request, *args, **kwargs):
+    #     pass
 
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
@@ -147,7 +147,9 @@ class SubmissionAPIViewSet(ModelViewSet):
     serializer_class = SubmissionSerializer
 
     '''
-    Create a submission only if the survey chosen by user is active
+    Create a submission only if the survey chosen by user is active.
+    submission can be completed only if all questions are answered,
+    so user cannot set is_complete = True during creation of submission
     '''
     def create(self, request, *args, **kwargs):
         serializer = SubmissionSerializer(data=request.data)
@@ -159,48 +161,52 @@ class SubmissionAPIViewSet(ModelViewSet):
         submitter = serializer.data['submitter']
 
         survey_chosen = Survey.objects.get(id=serializer.validated_data['survey'].id)
-        if survey_chosen.is_active:
-            Submission.objects.create(survey_id=survey, created_at=created, is_complete=is_complete,
-                                      submitter_id=submitter)
+        with transaction.atomic():
+            if survey_chosen.is_active:
+                if serializer.data['is_complete']:
+                    return Response('Submission cannot be completed during creation, Please uncheck is_complete')
+                else:
+                    Submission.objects.create(survey_id=survey, created_at=created, is_complete=is_complete,
+                                              submitter_id=submitter)
 
-            return Response(serializer.data, status=201)
+                    return Response(serializer.data, status=201)
+            else:
+                return Response('Survey is not active, cannot create submission')
+
+    def update(self, request, *args, **kwargs):
+        choices = False
+        text = False
+        submission_survey = self.get_object()
+        serializer = self.get_serializer(submission_survey, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        answer_choice = AnswerChoice.objects.filter(submission_id=submission_survey.id)
+        answer_text = AnswerText.objects.filter(submission_id=submission_survey.id)
+
+        if answer_choice:
+            for answer in range(len(answer_choice)):
+                if answer_choice[answer].option_id is not None:
+                    choices = True
+                else:
+                    choices = False
         else:
-            return Response('Survey is not active, cannot create submission')
+            choices = True
+        if answer_text:
+            for answer in range(len(answer_text)):
+                if answer_text[answer].comment is not None:
+                    text = True
+                else:
+                    text = False
+        else:
+            text = True
 
-# Todo  Allow the user to complete the submission only if all the questions are answered.
-#     def update(self, request, *args, **kwargs):
-#         choices = False
-#         text = False
-#         submission_survey = self.get_object()
-#         print(submission_survey.id)
-#         serializer = self.get_serializer(submission_survey, data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         answer_choice = AnswerChoice.objects.filter(submission_id=submission_survey.id)
-#         answer_text = AnswerText.objects.filter(submission_id=submission_survey.id)
-#         if answer_choice:
-#             for answer in range(len(answer_choice)):
-#                 if answer_choice[answer].option_id is not None:
-#                     choices = True
-#                 else:
-#                     choices = False
-#         else:
-#             choices = True
-#         if answer_text:
-#             for answer in range(len(answer_text)):
-#                 if answer_text[answer].comment is not None:
-#                     text = True
-#                 else:
-#                     text = False
-#         else:
-#             text = True
-#         if choices and text and serializer.data['survey'] == submission_survey.survey_id:
-#             Submission.objects.filter(id=submission_survey.id).update(survey_id = serializer.data['survey'],
-#                                                                       created_at = serializer.data['created_at'],
-#                                                                       is_complete = serializer.data['is_complete'],
-#                                                                       submitter_id = serializer.data['submitter'])
-#             return Response('Survey updated')
-#         else:
-#             return Response('complete the survey to submit it')
+        if choices and text and serializer.validated_data['survey'].id == submission_survey.survey_id:
+            Submission.objects.filter(id=submission_survey.id).update(survey_id = serializer.validated_data['survey'],
+                                                                      created_at = serializer.validated_data['created_at'],
+                                                                      is_complete = serializer.validated_data['is_complete'],
+                                                                      submitter_id = serializer.validated_data['submitter'])
+            return Response('Survey updated')
+        else:
+            return Response('Complete the survey to submit it / Invalid submission')
 
 class AnswerChoiceAPIViewSet(ModelViewSet):
     queryset = AnswerChoice.objects.all()
