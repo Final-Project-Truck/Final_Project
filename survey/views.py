@@ -47,7 +47,6 @@ class SurveyAPIViewSet(ModelViewSet):
                 template_question_1 = Question.objects.get(id=question_ids[0])
                 template_question_2 = Question.objects.get(id=question_ids[1])
                 template_question_3 = Question.objects.get(id=question_ids[2])
-                print(template_question_1.id, template_question_3.id, template_question_2.id)
 
                 """insert template survey questions into newly created survey"""
                 survey_question_1 = SurveyQuestion.objects.create(survey=new_survey, question=template_question_1)
