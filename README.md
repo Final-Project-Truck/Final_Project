@@ -1,5 +1,7 @@
 # Final_Project
-- Class final project_Lama_Peter_Divya
+
+- Class final project_Lama_Peter_Divya_Fares_Igor
+
 
 App for truck drivers (or others jobs with a competitive market Eg. programmers) looking for another job
 and want other truck driver recommendations (like Glass door or LinkedIn).
