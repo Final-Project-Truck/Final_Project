@@ -64,6 +64,29 @@ class SurveyAPIViewSet(ModelViewSet):
                 survey_question_3.save()
             return Response(serializer.data, status=201)
 
+    '''
+    Do not allow user to inactivate the survey if submission is created for it
+    '''
+    def update(self, request, *args, **kwargs):
+        survey = self.get_object()
+        serializer = self.get_serializer(survey, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_submission = Submission.objects.filter(survey_id=survey.id)
+
+        if survey_submission and not serializer.validated_data['is_active']:
+            return Response('Cannot inactivate survey, submission is '
+                            'already created.')
+        else:
+            Survey.objects.filter(
+                id=survey.id).update(
+                title=serializer.validated_data['title'],
+                created_at=serializer.validated_data['created_at'],
+                company=serializer.validated_data['company'],
+                creator=serializer.validated_data['creator'],
+                is_active=serializer.validated_data['is_active'])
+            return Response('Survey updated', status=201)
+
 
 class QuestionAPIViewSet(ModelViewSet):
     queryset = Question.objects.all()
@@ -120,10 +143,10 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             return Response('Survey is active, cannot update questions')
         else:
             if serializer.data['survey'] == survey_question.survey_id:
-                SurveyQuestion.objects.filter(
-                    survey_id=survey_chosen.id).update(
-                    question=serializer.data['question'])
-                return Response(serializer.data, status=201)
+                SurveyQuestion.objects.filter(id=survey_question.id,
+                                              survey_id=survey_chosen.id).\
+                    update(question=serializer.validated_data['question'])
+                return Response('Survey_Question updated', status=201)
             else:
                 return Response('Edit only the chosen survey')
 
