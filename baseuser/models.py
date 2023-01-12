@@ -29,9 +29,9 @@ class Profile(models.Model):
     about = models.TextField(max_length=250, null=True)
 
 
-class Search(models.Model):
-    key_word = models.CharField(max_length=200)
-    author = models.CharField(max_length=200, null=True)
-
-    def __str__(self):
-        return self.key_word
+# class Search(models.Model):
+#     key_word = models.CharField(max_length=200)
+#     author = models.CharField(max_length=200, null=True)
+#
+#     def __str__(self):
+#         return self.key_word

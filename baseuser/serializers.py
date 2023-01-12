@@ -24,7 +24,7 @@ class ProfileSerializer(ModelSerializer):
         fields = '__all__'
 
 
-class SearchSerializer(ModelSerializer):
-    class Meta:
-        model = Search
-        fields = '__all__'
+# class SearchSerializer(ModelSerializer):
+#     class Meta:
+#         model = Search
+#         fields = '__all__'

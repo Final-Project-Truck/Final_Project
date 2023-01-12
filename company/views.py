@@ -1,4 +1,6 @@
+from rest_framework import filters
 from django.db import transaction
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
@@ -79,5 +81,12 @@ class CompanyAPIViewSet(ModelViewSet):
 
 
 class JobPostingAPIViewSet(ModelViewSet):
+    queryset = JobPosting.objects.all()
+    serializer_class = JobPostingSerializer
+
+
+class JobPostingFilterAPIView(ListCreateAPIView):
+    search_fields = ['job_title', 'company__name', 'description']
+    filter_backends = (filters.SearchFilter,)
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer

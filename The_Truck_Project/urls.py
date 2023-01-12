@@ -19,9 +19,9 @@ from django.urls import path, include
 from rest_framework import routers
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet, SearchAPIView
+    ProfileUserAPIViewSet  # SearchAPIView
 from baseuser.views import registerPage, loginPage, logoutUser, home
-from company.views import CompanyAPIViewSet
+from company.views import CompanyAPIViewSet, JobPostingFilterAPIView
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
@@ -42,16 +42,20 @@ router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
-router.register(r'searches', SearchAPIView)
+# router.register(r'searches', SearchAPIView)
 
 urlpatterns = [
     path('', home, name="home"),
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include(router.urls)),
+    # path('api/v1/search/', SearchAPIView.as_view()),
+
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
     path('register/', registerPage, name="register"),
     path('login/', loginPage, name="login"),
     path('logout/', logoutUser, name="logout"),
-    path('searches/', SearchAPIView, name="search")
+    # path('searches/', SearchAPIView.as_view(), name="search"),
+    path('api/v1/jobs/', JobPostingFilterAPIView.as_view(), name="job_search")
+
 ]
