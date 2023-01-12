@@ -26,7 +26,7 @@ class TestCompanyAPIViewSet(TestCase):
             self):
         data = {"name": "'company_name'", "location": "company_location",
                 "description": "company_description"}
-        response = self.client.post('/api/v1/companies/', data)
+        self.client.post('/api/v1/companies/', data)
         output = get_object_or_404(Survey, title="'company_name'")
         self.assertNotEqual(output, 404)
 
