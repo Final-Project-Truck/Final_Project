@@ -27,3 +27,11 @@ class Profile(models.Model):
     picture = models.ImageField(upload_to='profile_images',
                                 default='tinyurl.com/2a382vsm')
     about = models.TextField(max_length=250, null=True)
+
+
+class Search(models.Model):
+    key_word = models.CharField(max_length=200)
+    author = models.CharField(max_length=200, null=True)
+
+    def __str__(self):
+        return self.key_word

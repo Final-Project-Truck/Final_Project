@@ -4,14 +4,15 @@ from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.db import transaction
 from django.shortcuts import render, redirect
-from rest_framework import status
+from rest_framework import status, generics, filters
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUsers, Profile
-from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
+from baseuser.models import BaseUsers, Profile, Search
+from baseuser.serializers import BaseUsersSerializer, \
+    BaseUsersSafeSerializer, SearchSerializer
 from baseuser.serializers import ProfileSerializer
 
 
@@ -148,3 +149,10 @@ def home(request):
 class ProfileUserAPIViewSet(ModelViewSet):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+
+
+class SearchAPIView(generics.ListCreateAPIView):
+    search_fields = ['key_word']
+    filter_backends = (filters.SearchFilter,)
+    queryset = Search.objects.all()
+    serializer_class = SearchSerializer

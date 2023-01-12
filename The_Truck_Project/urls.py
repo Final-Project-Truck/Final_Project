@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework import routers
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet
+    ProfileUserAPIViewSet, SearchAPIView
 from baseuser.views import registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
@@ -42,6 +42,7 @@ router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
+router.register(r'searches', SearchAPIView)
 
 urlpatterns = [
     path('', home, name="home"),
@@ -52,4 +53,5 @@ urlpatterns = [
     path('register/', registerPage, name="register"),
     path('login/', loginPage, name="login"),
     path('logout/', logoutUser, name="logout"),
+    path('searches/', SearchAPIView, name="search")
 ]

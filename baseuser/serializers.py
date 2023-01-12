@@ -2,6 +2,7 @@ from rest_framework.serializers import ModelSerializer
 
 from baseuser.models import BaseUsers
 from baseuser.models import Profile
+from baseuser.models import Search
 
 
 class BaseUsersSafeSerializer(ModelSerializer):
@@ -18,7 +19,12 @@ class BaseUsersSerializer(ModelSerializer):
 
 
 class ProfileSerializer(ModelSerializer):
-
     class Meta:
         model = Profile
+        fields = '__all__'
+
+
+class SearchSerializer(ModelSerializer):
+    class Meta:
+        model = Search
         fields = '__all__'
