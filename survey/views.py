@@ -26,6 +26,7 @@ class SurveyAPIViewSet(ModelViewSet):
         company = serializer.data['company']
         creator = serializer.data['creator']
         is_active = serializer.data['is_active']
+        template = serializer.data['template']
         with transaction.atomic():
             if serializer.data['is_active']:
                 return Response('Survey cannot be activated during creation')
@@ -34,14 +35,12 @@ class SurveyAPIViewSet(ModelViewSet):
                                                    created_at=created_at,
                                                    company_id=company,
                                                    creator_id=creator,
-                                                   is_active=is_active)
+                                                   is_active=is_active,
+                                                   template=template)
                 new_survey.save()
                 """Get Company's template survey"""
-                creating_company = Company.objects.get(
-                    id=new_survey.company_id)
                 template_survey = Survey.objects.get(
-                    company_id=company,
-                    title=creating_company.name)
+                    template_id=company)
                 """Get the Questions related to the template survey"""
                 template_questions = SurveyQuestion.objects.filter(
                     survey_id=template_survey.id)

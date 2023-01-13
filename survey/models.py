@@ -17,8 +17,11 @@ class Survey(models.Model):
     title = models.CharField(max_length=64)
     is_active = models.BooleanField(default=False)
     creator = models.ForeignKey(BaseUsers, on_delete=models.CASCADE, null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE,
+                                related_name='company')
     created_at = models.DateTimeField(default=timezone.now)
+    template = models.OneToOneField(Company, null=True, blank=True,
+                                    on_delete=models.SET_NULL)
 
     def __str__(self):
         return f'{self.title}'

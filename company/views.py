@@ -21,7 +21,8 @@ class CompanyAPIViewSet(ModelViewSet):
 
             """Create Company Survey"""
             survey = Survey.objects.create(
-                title=company.name, is_active=False, company=company)
+                title=company.name, is_active=False, company_id=company.id,
+                template_id=company.id)
 
             """Template Question 1"""
             template_question_1 = Question.objects.create(
