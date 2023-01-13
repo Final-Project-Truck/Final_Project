@@ -40,7 +40,9 @@ class SurveySerializer(ModelSerializer):
     # user_name = serializers.ReadOnlyField()
     class Meta:
         model = Survey
-        fields = '__all__'
+        #fields = '__all__'
+        fields = ['id', 'title', 'is_active', 'creator', 'company',
+                  'created_at', 'template', 'questions']
 
 
 class SurveyQuestionSerializer(ModelSerializer):

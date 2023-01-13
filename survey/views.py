@@ -61,7 +61,7 @@ class SurveyAPIViewSet(ModelViewSet):
                 survey_question_3 = SurveyQuestion.objects.create(
                     survey=new_survey, question=template_question_3)
                 survey_question_3.save()
-            return Response(serializer.data, status=201)
+            return Response(SurveySerializer(new_survey).data, status=201)
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
@@ -83,7 +83,9 @@ class SurveyAPIViewSet(ModelViewSet):
                 created_at=serializer.validated_data['created_at'],
                 company=serializer.validated_data['company'],
                 creator=serializer.validated_data['creator'],
-                is_active=serializer.validated_data['is_active'])
+                is_active=serializer.validated_data['is_active'],
+                template=serializer.validated_data['template']
+            )
             return Response('Survey updated', status=201)
 
 
