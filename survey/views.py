@@ -64,14 +64,53 @@ class SurveyAPIViewSet(ModelViewSet):
                 survey_question_3.save()
             return Response(serializer.data, status=201)
 
+    '''
+    Do not allow user to inactivate the survey if submission is created for it
+    '''
+    def update(self, request, *args, **kwargs):
+        survey = self.get_object()
+        serializer = self.get_serializer(survey, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_submission = Submission.objects.filter(survey_id=survey.id)
+
+        if survey_submission and not serializer.validated_data['is_active']:
+            return Response('Cannot inactivate survey, submission is '
+                            'already created.')
+        else:
+            Survey.objects.filter(
+                id=survey.id).update(
+                title=serializer.validated_data['title'],
+                created_at=serializer.validated_data['created_at'],
+                company=serializer.validated_data['company'],
+                creator=serializer.validated_data['creator'],
+                is_active=serializer.validated_data['is_active'])
+            return Response('Survey updated', status=201)
+
 
 class QuestionAPIViewSet(ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
 
-# todo if implementation of template questions are done,
-#  check if only user created
-# todo questions can be edited but not the template questions
+    def update(self, request, *args, **kwargs):
+        question = self.get_object()
+        serializer = self.get_serializer(question, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question.id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot update template questions')
+            elif survey_question:
+                return Response('Question is used in another survey and '
+                                'cannot edit it')
+            else:
+                Question.objects.filter(id=question.id).update(
+                    prompt=serializer.validated_data['prompt'],
+                    type=serializer.validated_data['type'],
+                    template_question='f')
+                return Response('Question updated')
 
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
@@ -120,10 +159,10 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             return Response('Survey is active, cannot update questions')
         else:
             if serializer.data['survey'] == survey_question.survey_id:
-                SurveyQuestion.objects.filter(
-                    survey_id=survey_chosen.id).update(
-                    question=serializer.data['question'])
-                return Response(serializer.data, status=201)
+                SurveyQuestion.objects.filter(id=survey_question.id,
+                                              survey_id=survey_chosen.id).\
+                    update(question=serializer.validated_data['question'])
+                return Response('Survey_Question updated', status=201)
             else:
                 return Response('Edit only the chosen survey')
 
@@ -131,6 +170,26 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
+
+    def update(self, request, *args, **kwargs):
+        option = self.get_object()
+        serializer = self.get_serializer(option, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=option.question_id)
+        question = Question.objects.get(id=option.question_id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot update template options')
+            elif survey_question:
+                return Response('Option is used in another survey and '
+                                'cannot edit it')
+            else:
+                Option.objects.filter(id=option.id).update(
+                    text=serializer.validated_data['text'],
+                    question_id=serializer.validated_data['question'])
+                return Response('Options updated')
 
 
 class SubmissionAPIViewSet(ModelViewSet):
