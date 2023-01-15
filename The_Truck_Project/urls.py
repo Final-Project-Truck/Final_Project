@@ -18,18 +18,17 @@ from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
-
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet
-from baseuser.views import registerPage, loginPage, logoutUser, home
-from company.views import CompanyAPIViewSet
+    ProfileUserAPIViewSet, user_register
+from baseuser.views import user_login, user_logout, home
+from company.views import CompanyAPIViewSet, company_register, company_login, \
+    company_logout
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
-from company.views import register_company
-from company.views import verify_company
+
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
@@ -52,9 +51,12 @@ urlpatterns = [
     path('api/v1/', include(router.urls), name="api"),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
-    path('register/', registerPage, name="register"),
-    path('login/', loginPage, name="login"),
-    path('logout/', logoutUser, name="logout"),
+    path('register_user/', user_register, name="register_user"),
+    path('user_login/', user_login, name="user_login"),
+    path('user_logout/', user_logout, name="user_logout"),
+    path('company_register/', company_register, name='company_register'),
+    path('company_login/', company_login, name='company_login'),
+    path('company_logout/', company_logout, name='company_logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
@@ -66,6 +68,5 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-    path('register_company/', register_company, name='register_company'),
-    path('verify_company/<int:pk>/', verify_company, name='verify_company'),
+
 ]

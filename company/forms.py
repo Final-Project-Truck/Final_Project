@@ -1,12 +1,10 @@
-from django import forms
-from .models import BaseCompany
+from django.forms import ModelForm
+from company.models import Company
 
 
-class CompanyRegistrationForm(forms.ModelForm):
-    password = forms.CharField(widget=forms.PasswordInput())
-    confirm_password = forms.CharField(widget=forms.PasswordInput())
+class CompanyRegistrationForm(ModelForm):
 
     class Meta:
-        model = BaseCompany
-        fields = ['name', 'email', 'password', 'confirm_password',
-                  'phone_number', 'address', 'legal_papers']
+        model = Company
+        fields = ['username', 'website', 'email', 'password',
+                  'confirm_password']

@@ -15,13 +15,13 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUsers, Profile
+from baseuser.models import BaseUser, Profile
 from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
 from baseuser.serializers import ProfileSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
-    queryset = BaseUsers.objects.all()
+    queryset = BaseUser.objects.all()
     serializer_class = BaseUsersSerializer
 
     def create(self, request, *args, **kwargs):
@@ -37,8 +37,8 @@ class BaseUsersAPIViewSet(ModelViewSet):
                 django_user = User.objects.create_user(username=username,
                                                        password=password2,
                                                        email=email)
-                base_user = BaseUsers.objects.create(**serializer.data,
-                                                     django_user=django_user)
+                base_user = BaseUser.objects.create(**serializer.data,
+                                                    django_user=django_user)
                 return Response(BaseUsersSerializer(base_user).data,
                                 status=201)
             else:
@@ -86,11 +86,11 @@ class BaseUsersAPIViewSet(ModelViewSet):
 
 
 class BaseUsersSafeAPIViewSet(ListAPIView):
-    queryset = BaseUsers.objects.all()
+    queryset = BaseUser.objects.all()
     serializer_class = BaseUsersSafeSerializer
 
 
-def registerPage(request, django_user=None):
+def user_register(request, django_user=None):
     if request.user.is_authenticated:
         return redirect('home')
     else:
@@ -102,8 +102,8 @@ def registerPage(request, django_user=None):
                     user = form.save()
                     djangouser = User.objects.get(
                         email=form.cleaned_data['email'])
-                    BaseUsers.objects.create(**form.cleaned_data,
-                                             django_user_id=djangouser.id)
+                    BaseUser.objects.create(**form.cleaned_data,
+                                            django_user_id=djangouser.id)
                 messages.success(request,
                                  'Account was created for ' +
                                  djangouser.username)
@@ -119,7 +119,7 @@ def registerPage(request, django_user=None):
                 return redirect('home')
         else:
             form = CreateUserForm()
-        return render(request, 'register.html', {'form': form})
+            return render(request, 'user_register.html', {'form': form})
 
 
 def forget_password(request):
@@ -154,7 +154,7 @@ def forget_password(request):
         return render(request, 'forget_password.html')
 
 
-def loginPage(request):
+def user_login(request):
     if request.user.is_authenticated:
         return redirect('home')
     else:
@@ -171,12 +171,12 @@ def loginPage(request):
                 messages.info(request, 'Username OR password is incorrect')
 
         context = {}
-        return render(request, 'login.html', context)
+        return render(request, 'user_login.html', context)
 
 
-def logoutUser(request):
+def user_logout(request):
     logout(request)
-    return redirect('login')
+    return redirect('user_login')
 
 
 def home(request):

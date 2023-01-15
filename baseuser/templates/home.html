@@ -33,10 +33,15 @@
             transform: translate(-50%,-50%); /* Move up by 50% of the element's height */
         }
     </style>
-        <div class="wlc-container">
-            <h1 class="wlc">Welcome to the final project</h1>
-            <p class="wlc1">This is the home page.</p>
-        </div>
-    </head>
+</head>
+    <body>
+    <div class="wlc-container">
+        <h1 class="wlc">Welcome to the final project</h1>
+        <p class="wlc1">This is the home page.</p>
+    </div>
+    {% if is_authenticated %}
+        <a href="{% url 'logout' %}" class="btn btn-danger" style="position: absolute; right: 2%; top: 2%;">Logout</a>
+    {% endif %}
+    </body>
 </html>
 {% endblock %}
