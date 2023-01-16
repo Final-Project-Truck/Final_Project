@@ -7,13 +7,23 @@ on:
   pull_request:
     branches: [main, Develop_Main]
 
-
 jobs:
   tests:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.8, 3.9, '3.10']
+    services:
+      postgres:
+        image: postgres:latest
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: github_actions
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -26,3 +36,12 @@ jobs:
       - name: Coding Style
         run: |
           flake8 --exclude venv,manage.py
+
+      - name: Run migrations
+        run: python manage.py migrate
+      - name: Run tests
+        run: python manage.py test
+      - name: Coverage
+        run: |
+          coverage run --source . manage.py test
+          coverage report --fail-under 60
