@@ -1,12 +1,6 @@
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
-from django.core.mail import send_mail
 from django.db import transaction
-from django.shortcuts import render, redirect
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from company.forms import CompanyRegistrationForm
 from company.models import JobPosting, Company
 from company.serializers import CompanySerializer, JobPostingSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
@@ -86,61 +80,3 @@ class CompanyAPIViewSet(ModelViewSet):
 class JobPostingAPIViewSet(ModelViewSet):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
-
-
-def company_register(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    else:
-        if request.method == 'POST':
-            form = CompanyRegistrationForm(request.POST)
-            if form.is_valid():
-                user = User.objects.create_user(
-                    username=form.cleaned_data['username'],
-                    password=form.cleaned_data['password'],
-                    email=form.cleaned_data['email'])
-                company = form.save(commit=False)
-                company.django_user = user
-                company.save()
-                messages.success(request, 'Company registered successfully')
-                send_mail(
-                    'Register Completed',  # Change your Subject
-                    '[as a COMPANY]Thank you for joining our Website',  #
-                    # Change your message
-
-                    'struckproject@gmail.com',  # Put the email your going
-                    # to use
-                    [user.email],
-                    fail_silently=False
-                )
-                return redirect('company_login')
-        else:
-            form = CompanyRegistrationForm()
-        return render(request, 'company_register.html', {'form': form})
-
-
-def company_login(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    else:
-        if request.method == 'POST':
-            username = request.POST.get('username')
-            password = request.POST.get('password')
-
-            user = authenticate(request, username=username,
-                                password=password)
-
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.error(request,
-                               'Company email OR password is incorrect')
-
-        context = {}
-        return render(request, 'company_login.html', context)
-
-
-def company_logout(request):
-    logout(request)
-    return redirect('company_login')

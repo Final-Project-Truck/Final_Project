@@ -21,8 +21,7 @@ from rest_framework import routers
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
     ProfileUserAPIViewSet, user_register
 from baseuser.views import user_login, user_logout, home
-from company.views import CompanyAPIViewSet, company_register, company_login, \
-    company_logout
+from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
@@ -54,9 +53,6 @@ urlpatterns = [
     path('register_user/', user_register, name="register_user"),
     path('user_login/', user_login, name="user_login"),
     path('user_logout/', user_logout, name="user_logout"),
-    path('company_register/', company_register, name='company_register'),
-    path('company_login/', company_login, name='company_login'),
-    path('company_logout/', company_logout, name='company_logout'),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
