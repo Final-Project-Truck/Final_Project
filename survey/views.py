@@ -26,43 +26,48 @@ class SurveyAPIViewSet(ModelViewSet):
         company = serializer.data['company']
         creator = serializer.data['creator']
         is_active = serializer.data['is_active']
-        with transaction.atomic():
-            if serializer.data['is_active']:
-                return Response('Survey cannot be activated during creation')
-            else:
-                new_survey = Survey.objects.create(title=title,
-                                                   created_at=created_at,
-                                                   company_id=company,
-                                                   creator_id=creator,
-                                                   is_active=is_active)
-                new_survey.save()
-                """Get Company's template survey"""
-                creating_company = Company.objects.get(
-                    id=new_survey.company_id)
-                template_survey = Survey.objects.get(
-                    company_id=company,
-                    title=creating_company.name)
-                """Get the Questions related to the template survey"""
-                template_questions = SurveyQuestion.objects.filter(
-                    survey_id=template_survey.id)
-                question_ids = []
-                for template_question in template_questions:
-                    question_ids.append(template_question.question_id)
-                template_question_1 = Question.objects.get(id=question_ids[0])
-                template_question_2 = Question.objects.get(id=question_ids[1])
-                template_question_3 = Question.objects.get(id=question_ids[2])
 
-                """insert template survey questions into new created survey"""
-                survey_question_1 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_1)
-                survey_question_1.save()
-                survey_question_2 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_2)
-                survey_question_2.save()
-                survey_question_3 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_3)
-                survey_question_3.save()
-            return Response(serializer.data, status=201)
+        ''' Check if the user already created a survey for the company'''
+        if Survey.objects.filter(creator_id=creator, company_id=company):
+            return Response('You cannot create multiple surveys for a company')
+        else:
+            with transaction.atomic():
+                if serializer.data['is_active']:
+                    return Response('Survey cannot be activated during creation')
+                else:
+                    new_survey = Survey.objects.create(title=title,
+                                                       created_at=created_at,
+                                                       company_id=company,
+                                                       creator_id=creator,
+                                                       is_active=is_active)
+                    new_survey.save()
+                    """Get Company's template survey"""
+                    creating_company = Company.objects.get(
+                        id=new_survey.company_id)
+                    template_survey = Survey.objects.get(
+                        company_id=company,creator_id=None)
+                        #title=creating_company.name)
+                    """Get the Questions related to the template survey"""
+                    template_questions = SurveyQuestion.objects.filter(
+                        survey_id=template_survey.id)
+                    question_ids = []
+                    for template_question in template_questions:
+                        question_ids.append(template_question.question_id)
+                    template_question_1 = Question.objects.get(id=question_ids[0])
+                    template_question_2 = Question.objects.get(id=question_ids[1])
+                    template_question_3 = Question.objects.get(id=question_ids[2])
+
+                    """insert template survey questions into new created survey"""
+                    survey_question_1 = SurveyQuestion.objects.create(
+                        survey=new_survey, question=template_question_1)
+                    survey_question_1.save()
+                    survey_question_2 = SurveyQuestion.objects.create(
+                        survey=new_survey, question=template_question_2)
+                    survey_question_2.save()
+                    survey_question_3 = SurveyQuestion.objects.create(
+                        survey=new_survey, question=template_question_3)
+                    survey_question_3.save()
+                return Response(SurveySerializer(new_survey).data, status=201)
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
@@ -73,10 +78,18 @@ class SurveyAPIViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         survey_submission = Submission.objects.filter(survey_id=survey.id)
-
-        if survey_submission and not serializer.validated_data['is_active']:
-            return Response('Cannot inactivate survey, submission is '
+        #template_survey = Survey.objects.filter(survey_id=survey.id,
+         #                                       template_id__null=False)
+        if not survey.creator:
+            return Response('Template survey cannot be edited')
+        elif survey_submission and not serializer.validated_data['is_active']:
+            return Response('Cannot inactivate/update survey, submission is '
                             'already created.')
+        #elif template_survey:
+         #   return Response('Template survey cannot be edited')
+        elif survey_submission:
+            return Response('Cannot update the survey,submission is already '
+                            'created.')
         else:
             Survey.objects.filter(
                 id=survey.id).update(
