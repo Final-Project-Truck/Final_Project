@@ -13,7 +13,6 @@ from baseuser.forms import CreateUserForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 from baseuser.serializers import BaseUsersSerializer, \
     BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
-from company.models import Company
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -156,7 +155,6 @@ class UserProfileAPIViewSet(ModelViewSet):
 
         base_user = serializer.data['base_user']
         current_company = serializer.data['current_company']
-        past_companies = serializer.data['past_companies']
         picture = serializer.data['picture']
         about = serializer.data['about']
 

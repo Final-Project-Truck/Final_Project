@@ -5,10 +5,10 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('company', '0004_remove_jobposting_company_name_jobposting_company'),
-        ('baseuser', '0004_remove_baseusers_password_baseusers_date_created_and_more'),
+        ('baseuser',
+         '0004_remove_baseusers_password_baseusers_date_created_and_more'),
     ]
 
     operations = [
@@ -19,19 +19,32 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='baseusers',
             name='user_type',
-            field=models.CharField(choices=[('per', 'Person'), ('com', 'Company')], default=1, max_length=3),
+            field=models.CharField(
+                choices=[('per', 'Person'), ('com', 'Company')], default=1,
+                max_length=3),
             preserve_default=False,
         ),
         migrations.CreateModel(
             name='CompanyProfile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False,
+                                           verbose_name='ID')),
                 ('website', models.URLField()),
                 ('number_of_employees', models.IntegerField()),
-                ('type', models.CharField(choices=[('pub', 'Public'), ('pri', 'Private'), ('sel', 'Self-Employed'), ('oth', 'Other')], max_length=3)),
+                ('type', models.CharField(
+                    choices=[('pub', 'Public'), ('pri', 'Private'),
+                             ('sel', 'Self-Employed'), ('oth', 'Other')],
+                    max_length=3)),
                 ('revenue', models.IntegerField()),
-                ('base_user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='company_profile', to='baseuser.baseusers')),
-                ('company', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='company_user', to='company.company')),
+                ('base_user', models.OneToOneField(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='company_profile', to='baseuser.baseusers')),
+                ('company', models.OneToOneField(
+                    null=True,
+                    on_delete=django.db.models.deletion.SET_NULL,
+                    related_name='company_user',
+                    to='company.company')),
             ],
         ),
     ]
