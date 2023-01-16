@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main, Develop_Main, lama_ci_postgres_settings]
+    branches: [main, Develop_Main]
 
   pull_request:
-    branches: [main, Develop_Main, lama_ci_postgres_settings]
+    branches: [main, Develop_Main]
 
 jobs:
   tests:
