@@ -4,7 +4,7 @@ from django.db import models
 
 class Company(models.Model):
     username = models.CharField(max_length=255, null=True, unique=True)
-    website = models.URLField(max_length=255, null=True)
+    website = models.URLField(max_length=255, null=True, unique=True)
     email = models.EmailField(max_length=255, null=True, unique=True)
     password = models.CharField(max_length=255, null=True)
     confirm_password = models.CharField(max_length=255, null=True)

@@ -105,9 +105,10 @@ def company_register(request):
                 messages.success(request, 'Company registered successfully')
                 send_mail(
                     'Register Completed',  # Change your Subject
-                    'Thank you for joining our Website',  # Change your message
+                    '[as a COMPANY]Thank you for joining our Website',  #
+                    # Change your message
 
-                    'tryharderbruhhh@gmail.com',  # Put the email your going
+                    'struckproject@gmail.com',  # Put the email your going
                     # to use
                     [user.email],
                     fail_silently=False

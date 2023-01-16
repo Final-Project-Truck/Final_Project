@@ -109,9 +109,10 @@ def user_register(request, django_user=None):
                                  djangouser.username)
                 send_mail(
                     'Register Completed',  # Change your Subject
-                    'Thank you for joining our Website',  # Change your message
+                    '[as a USER]Thank you for joining our Website',  #
+                    # Change your message
 
-                    'tryharderbruhhh@gmail.com',  # Put the email your going
+                    'struckproject@gmail.com',  # Put the email your going
                     # to use
                     [user.email],
                     fail_silently=False
@@ -134,7 +135,7 @@ def forget_password(request):
                 send_mail(
                     'Password reset on your account',
                     email_body,
-                    'tryharderbruhhh@gmail.com',
+                    'struckproject@gmail.com',
                     [user.email],
                     fail_silently=False,
                 )
