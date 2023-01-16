@@ -2,10 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, Develop_Main, lama_ci_postgres_settings]
-
-  pull_request:
-    branches: [main, Develop_Main, lama_ci_postgres_settings]
+    on: [push, pull_request] #triggers the actions on pushing to any branch and on any pull request
 
 jobs:
   tests:
@@ -16,7 +13,7 @@ jobs:
     services:
       postgres:
         image: postgres:latest
-        env:
+        env: # change those using ${{ secrets.VARIABLE NAME on production }}
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: github_actions
@@ -38,10 +35,19 @@ jobs:
           flake8 --exclude venv,manage.py
 
       - name: Run migrations
+        env:
+          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
+          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
         run: python manage.py migrate
       - name: Run tests
+        env:
+          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
+          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
         run: python manage.py test
       - name: Coverage
+        env:
+          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
+          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
         run: |
           coverage run --source . manage.py test
           coverage report --fail-under 60
