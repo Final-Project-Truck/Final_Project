@@ -6,7 +6,8 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company', '0017_alter_company_confirm_password_alter_company_email_and_more'),
+        ('company',
+         '0017_alter_company_confirm_password_alter_company_email_and_more'),
     ]
 
     operations = [

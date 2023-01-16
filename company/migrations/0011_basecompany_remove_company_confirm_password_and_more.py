@@ -6,14 +6,17 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company', '0010_remove_company_description_remove_company_location_and_more'),
+        ('company', '0010_remove_company_description_remove_'
+                    'company_location_and_more'),
     ]
 
     operations = [
         migrations.CreateModel(
             name='BaseCompany',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False, verbose_name='ID')
+                 ),
                 ('name', models.CharField(max_length=255)),
                 ('website', models.URLField(max_length=255)),
                 ('email', models.EmailField(max_length=255)),

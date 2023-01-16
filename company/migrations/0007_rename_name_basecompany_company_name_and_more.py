@@ -9,7 +9,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('company', '0006_remove_basecompany_address_remove_basecompany_email_and_more'),
+        ('company',
+         '0006_remove_basecompany_address_remove_basecompany_email_and_more'),
     ]
 
     operations = [
@@ -26,6 +27,10 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='basecompany',
             name='user',
-            field=models.OneToOneField(default=1, on_delete=django.db.models.deletion.CASCADE, related_name='BaseCompany', to=settings.AUTH_USER_MODEL),
+            field=models.OneToOneField(default=1,
+                                       on_delete=django.db.models.
+                                       deletion.CASCADE,
+                                       related_name='BaseCompany',
+                                       to=settings.AUTH_USER_MODEL),
         ),
     ]

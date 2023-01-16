@@ -7,13 +7,16 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('company', '0005_basecompany_alter_jobposting_company'),
-        ('baseuser', '0004_remove_baseusers_password_baseusers_date_created_and_more'),
+        ('baseuser',
+         '0004_remove_baseusers_password_baseusers_date_created_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='profile',
             name='past_companies',
-            field=models.ManyToManyField(blank=True, related_name='past_companies', to='company.company'),
+            field=models.ManyToManyField(blank=True,
+                                         related_name='past_companies',
+                                         to='company.company'),
         ),
     ]
