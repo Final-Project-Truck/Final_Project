@@ -51,8 +51,8 @@ urlpatterns = [
     path('api/v1/', include(router.urls), name="api"),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
-    path('register/', registerPage, name="register"),
-    path('login/', loginPage, name="login"),
+    path('registerPage/', registerPage, name="registerPage"),
+    path('loginPage/', loginPage, name="loginPage"),
     path('logout/', logoutUser, name="logout"),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),

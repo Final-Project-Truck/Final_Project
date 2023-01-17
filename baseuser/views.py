@@ -118,7 +118,7 @@ def registerPage(request, django_user=None):
                 return redirect('home')
         else:
             form = CreateUserForm()
-            return render(request, 'user_register.html', {'form': form})
+            return render(request, 'registerPage.html', {'form': form})
 
 
 def forget_password(request):
@@ -176,12 +176,12 @@ def loginPage(request):
                 messages.info(request, 'Username OR password is incorrect')
 
         context = {}
-        return render(request, 'user_login.html', context)
+        return render(request, 'loginPage.html', context)
 
 
 def logoutUser(request):
     logout(request)
-    return redirect('user_login')
+    return redirect('loginPage.html')
 
 
 def home(request):
