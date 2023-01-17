@@ -19,8 +19,8 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet, user_register
-from baseuser.views import user_login, user_logout, home
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet
+from baseuser.views import registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
@@ -31,7 +31,8 @@ from survey.views import SurveyQuestionAPIViewSet
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
-router.register(r'profile', ProfileUserAPIViewSet)
+router.register(r'user-profile', UserProfileAPIViewSet)
+router.register(r'company-profile', CompanyProfileAPIViewSet)
 router.register(r'jobposting', JobPostingAPIViewSet)
 
 router.register(r'companies', CompanyAPIViewSet)
@@ -50,9 +51,9 @@ urlpatterns = [
     path('api/v1/', include(router.urls), name="api"),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
-    path('register_user/', user_register, name="register_user"),
-    path('user_login/', user_login, name="user_login"),
-    path('user_logout/', user_logout, name="user_logout"),
+    path('register/', registerPage, name="register"),
+    path('login/', loginPage, name="login"),
+    path('logout/', logoutUser, name="logout"),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(

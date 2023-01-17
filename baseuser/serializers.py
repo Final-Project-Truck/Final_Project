@@ -1,24 +1,29 @@
 from rest_framework.serializers import ModelSerializer
-
-from baseuser.models import BaseUser
-from baseuser.models import Profile
+from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 
 
 class BaseUsersSafeSerializer(ModelSerializer):
     class Meta:
-        model = BaseUser
+        model = BaseUsers
         exclude = ['django_user', 'password1', 'password2']
 
 
 class BaseUsersSerializer(ModelSerializer):
     class Meta:
-        model = BaseUser
+        model = BaseUsers
         exclude = ['django_user']
         # extra_kwargs = {'password': {'write_only': True}}
 
 
-class ProfileSerializer(ModelSerializer):
+class UserProfileSerializer(ModelSerializer):
 
     class Meta:
-        model = Profile
+        model = UserProfile
+        fields = '__all__'
+
+
+class CompanyProfileSerializer(ModelSerializer):
+
+    class Meta:
+        model = CompanyProfile
         fields = '__all__'

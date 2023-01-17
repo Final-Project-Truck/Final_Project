@@ -12,15 +12,14 @@ from rest_framework import status
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUser, Profile
-from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
-from baseuser.serializers import ProfileSerializer
+from baseuser.models import BaseUsers, UserProfile, CompanyProfile
+from baseuser.serializers import BaseUsersSerializer, \
+    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
-    queryset = BaseUser.objects.all()
+    queryset = BaseUsers.objects.all()
     serializer_class = BaseUsersSerializer
 
     def create(self, request, *args, **kwargs):
@@ -36,7 +35,7 @@ class BaseUsersAPIViewSet(ModelViewSet):
                 django_user = User.objects.create_user(username=username,
                                                        password=password2,
                                                        email=email)
-                base_user = BaseUser.objects.create(**serializer.data,
+                base_user = BaseUsers.objects.create(**serializer.data,
                                                     django_user=django_user)
                 return Response(BaseUsersSerializer(base_user).data,
                                 status=201)
@@ -85,11 +84,11 @@ class BaseUsersAPIViewSet(ModelViewSet):
 
 
 class BaseUsersSafeAPIViewSet(ListAPIView):
-    queryset = BaseUser.objects.all()
+    queryset = BaseUsers.objects.all()
     serializer_class = BaseUsersSafeSerializer
 
 
-def user_register(request, django_user=None):
+def registerPage(request, django_user=None):
     if request.user.is_authenticated:
         return redirect('home')
     else:
@@ -101,7 +100,7 @@ def user_register(request, django_user=None):
                     user = form.save()
                     djangouser = User.objects.get(
                         email=form.cleaned_data['email'])
-                    BaseUser.objects.create(**form.cleaned_data,
+                    BaseUsers.objects.create(**form.cleaned_data,
                                             django_user_id=djangouser.id)
                 messages.success(request,
                                  'Account was created for ' +
@@ -160,7 +159,7 @@ def forget_password(request):
         return render(request, 'forget_password.html')
 
 
-def user_login(request):
+def loginPage(request):
     if request.user.is_authenticated:
         return redirect('home')
     else:
@@ -180,7 +179,7 @@ def user_login(request):
         return render(request, 'user_login.html', context)
 
 
-def user_logout(request):
+def logoutUser(request):
     logout(request)
     return redirect('user_login')
 
@@ -189,6 +188,59 @@ def home(request):
     return render(request, 'home.html')
 
 
-class ProfileUserAPIViewSet(ModelViewSet):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+class UserProfileAPIViewSet(ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = UserProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        base_user = serializer.data['base_user']
+        current_company = serializer.data['current_company']
+        picture = serializer.data['picture']
+        about = serializer.data['about']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'com':
+                return Response(
+                    'A Company cannot create a User Profile'
+                )
+            else:
+                UserProfile.objects.create(base_user_id=base_user,
+                                           current_company_id=current_company,
+                                           picture=picture, about=about)
+                return Response(serializer.data, status=201)
+
+
+class CompanyProfileAPIViewSet(ModelViewSet):
+    queryset = CompanyProfile.objects.all()
+    serializer_class = CompanyProfileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = CompanyProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        base_user = serializer.data['base_user']
+        company = serializer.data['company']
+        website = serializer.data['website']
+        number_of_employees = serializer.data['number_of_employees']
+        organization_type = serializer.data['organization_type']
+        revenue = serializer.data['revenue']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'per':
+                return Response(
+                    'A Person cannot create a Company Profile'
+                )
+            else:
+                CompanyProfile.objects.create(
+                    base_user_id=base_user, company_id=company,
+                    website=website,
+                    number_of_employees=number_of_employees,
+                    organization_type=organization_type,
+                    revenue=revenue)
+                return Response(serializer.data, status=201)
