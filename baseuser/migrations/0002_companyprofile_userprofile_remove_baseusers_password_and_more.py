@@ -7,7 +7,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('company', '0020_delete_exist_company_remove_company_confirm_password_and_more'),
+        ('company',
+         '0020_delete_exist_company_remove_company_confirm_password_and_more'),
         ('baseuser', '0001_initial'),
     ]
 
@@ -15,18 +16,28 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='CompanyProfile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True, primary_key=True,
+                                           serialize=False,
+                                           verbose_name='ID')),
                 ('website', models.URLField()),
                 ('number_of_employees', models.IntegerField()),
-                ('organization_type', models.CharField(choices=[('pub', 'Public'), ('pri', 'Private'), ('sel', 'Self-Employed'), ('oth', 'Other')], max_length=3)),
+                ('organization_type',
+                 models.CharField(choices=[('pub', 'Public'),
+                                           ('pri', 'Private'),
+                                           ('sel', 'Self-Employed'),
+                                           ('oth', 'Other')], max_length=3)),
                 ('revenue', models.IntegerField()),
             ],
         ),
         migrations.CreateModel(
             name='UserProfile',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('picture', models.ImageField(default='tinyurl.com/2a382vsm', upload_to='profile_images')),
+                ('id',
+                 models.BigAutoField(auto_created=True,
+                                     primary_key=True,
+                                     serialize=False, verbose_name='ID')),
+                ('picture', models.ImageField(default='tinyurl.com/2a382vsm',
+                                              upload_to='profile_images')),
                 ('about', models.TextField(max_length=250, null=True)),
             ],
         ),
@@ -52,7 +63,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='baseusers',
             name='user_type',
-            field=models.CharField(choices=[('per', 'Person'), ('com', 'Company')], default=1, max_length=3),
+            field=models.CharField(choices=[('per', 'Person'), ('com',
+                                                                'Company')],
+                                   default=1, max_length=3),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -71,26 +84,41 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='userprofile',
             name='base_user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='profile', to='baseuser.baseusers'),
+            field=models.OneToOneField(on_delete=django.db.models.
+                                       deletion.CASCADE,
+                                       related_name='profile',
+                                       to='baseuser.baseusers'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='current_company',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='current_company', to='company.company'),
+            field=models.ForeignKey(blank=True, null=True,
+                                    on_delete=django.db.models.
+                                    deletion.CASCADE,
+                                    related_name='current_company',
+                                    to='company.company'),
         ),
         migrations.AddField(
             model_name='userprofile',
             name='past_companies',
-            field=models.ManyToManyField(blank=True, related_name='past_companies', to='company.company'),
+            field=models.ManyToManyField(blank=True,
+                                         related_name='past_companies',
+                                         to='company.company'),
         ),
         migrations.AddField(
             model_name='companyprofile',
             name='base_user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='company_profile', to='baseuser.baseusers'),
+            field=models.OneToOneField(on_delete=django.db.models.
+                                       deletion.CASCADE,
+                                       related_name='company_profile',
+                                       to='baseuser.baseusers'),
         ),
         migrations.AddField(
             model_name='companyprofile',
             name='company',
-            field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='company_user', to='company.company'),
+            field=models.OneToOneField(null=True, on_delete=django.db.models.
+                                       deletion.SET_NULL,
+                                       related_name='company_user',
+                                       to='company.company'),
         ),
     ]
