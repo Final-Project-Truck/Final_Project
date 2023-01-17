@@ -10,9 +10,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUsers, Profile
-from baseuser.serializers import BaseUsersSerializer, BaseUsersSafeSerializer
-from baseuser.serializers import ProfileSerializer
+from baseuser.models import BaseUsers, UserProfile, CompanyProfile
+from baseuser.serializers import BaseUsersSerializer, \
+    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -145,6 +145,59 @@ def home(request):
     return render(request, 'home.html')
 
 
-class ProfileUserAPIViewSet(ModelViewSet):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+class UserProfileAPIViewSet(ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = UserProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        base_user = serializer.data['base_user']
+        current_company = serializer.data['current_company']
+        picture = serializer.data['picture']
+        about = serializer.data['about']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'com':
+                return Response(
+                    'A Company cannot create a User Profile'
+                )
+            else:
+                UserProfile.objects.create(base_user_id=base_user,
+                                           current_company_id=current_company,
+                                           picture=picture, about=about)
+                return Response(serializer.data, status=201)
+
+
+class CompanyProfileAPIViewSet(ModelViewSet):
+    queryset = CompanyProfile.objects.all()
+    serializer_class = CompanyProfileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = CompanyProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        base_user = serializer.data['base_user']
+        company = serializer.data['company']
+        website = serializer.data['website']
+        number_of_employees = serializer.data['number_of_employees']
+        organization_type = serializer.data['organization_type']
+        revenue = serializer.data['revenue']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'per':
+                return Response(
+                    'A Person cannot create a Company Profile'
+                )
+            else:
+                CompanyProfile.objects.create(
+                    base_user_id=base_user, company_id=company,
+                    website=website,
+                    number_of_employees=number_of_employees,
+                    organization_type=organization_type,
+                    revenue=revenue)
+                return Response(serializer.data, status=201)

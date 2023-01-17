@@ -19,7 +19,7 @@ from django.urls import path, include
 from rest_framework import routers
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutUser, home
 from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
@@ -30,7 +30,8 @@ from survey.views import SurveyQuestionAPIViewSet
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
-router.register(r'profile', ProfileUserAPIViewSet)
+router.register(r'user-profile', UserProfileAPIViewSet)
+router.register(r'company-profile', CompanyProfileAPIViewSet)
 router.register(r'jobposting', JobPostingAPIViewSet)
 
 router.register(r'companies', CompanyAPIViewSet)
