@@ -36,7 +36,7 @@ class BaseUsersAPIViewSet(ModelViewSet):
                                                        password=password2,
                                                        email=email)
                 base_user = BaseUsers.objects.create(**serializer.data,
-                                                    django_user=django_user)
+                                                     django_user=django_user)
                 return Response(BaseUsersSerializer(base_user).data,
                                 status=201)
             else:
@@ -101,7 +101,7 @@ def registerPage(request, django_user=None):
                     djangouser = User.objects.get(
                         email=form.cleaned_data['email'])
                     BaseUsers.objects.create(**form.cleaned_data,
-                                            django_user_id=djangouser.id)
+                                             django_user_id=djangouser.id)
                 messages.success(request,
                                  'Account was created for ' +
                                  djangouser.username)
