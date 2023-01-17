@@ -67,7 +67,6 @@ class TestBaseUsersAPIViewSet(TestCase):
         cls.person_profile.clean()
         cls.company_profile.clean()
 
-
     def test_if_person_baseuser_created_returns_201_created(self):
         data = {"username": "'name3'", "password": "name3",
                 "email": "name3@gmail.com", "user_type": "per"}
@@ -118,4 +117,3 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.client.delete('/api/v1/baseusers/1/', response.data)
         response = User.objects.filter(email='name1@gmail.com')
         self.assertEqual(response.exists(), False)
-

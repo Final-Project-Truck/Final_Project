@@ -9,9 +9,10 @@ class TestCompanyAPIViewSet(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.company = Company.objects.create(name='company_name',
-                               location='company_location',
-                               description='company_description')
+        cls.company = Company.objects.create(
+            name='company_name',
+            location='company_location',
+            description='company_description')
 
     def setUp(self):
         self.client = APIClient()
