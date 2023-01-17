@@ -11,42 +11,42 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        first_django_user = User.objects.create_user(
+        cls.first_django_user = User.objects.create_user(
             username='name1',
             password='name1',
             email='name1@gmail.com')
 
-        second_django_user = User.objects.create_user(
+        cls.second_django_user = User.objects.create_user(
             username='name2',
             password='name2',
             email='name2@gmail.com')
 
-        person_user = BaseUsers.objects.create(
+        cls.person_user = BaseUsers.objects.create(
             username='person',
             password1='name1',
             password2='name1', email='name1@gmail.com',
             date_created=datetime.date.fromisocalendar,
-            django_user=first_django_user, user_type='per')
+            django_user=cls.first_django_user, user_type='per')
 
-        company_user = BaseUsers.objects.create(
+        cls.company_user = BaseUsers.objects.create(
             username='name2',
             password1='name2',
             password2='name2', email='name2@gmail.com',
             date_created=datetime.date.fromisocalendar,
-            django_user=second_django_user, user_type='com')
+            django_user=cls.second_django_user, user_type='com')
 
-        company = Company.objects.create(
-            name='company_name',
+        cls.company = Company.objects.create(
+            name='test_company',
             location='company_location',
             description='company_description')
 
-        UserProfile.objects.create(
-            base_user_id=person_user.id, current_company_id=company.id,
+        cls.person_profile = UserProfile.objects.create(
+            base_user_id=cls.person_user.id, current_company_id=cls.company.id,
             picture='tinyurl.com/2a382vsm', about="text"
             )
 
-        CompanyProfile.objects.create(
-            base_user_id=company_user.id, company_id=company.id,
+        cls.company_profile = CompanyProfile.objects.create(
+            base_user_id=cls.company_user.id, company_id=cls.company.id,
             website="https://www.person.com/",
             number_of_employees=100,
             organization_type='pub',
@@ -55,6 +55,18 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.company.clean()
+        cls.first_django_user.clean()
+        cls.second_django_user.clean()
+        cls.person_user.clean()
+        cls.company_user.clean()
+        cls.company.clean()
+        cls.person_profile.clean()
+        cls.company_profile.clean()
+
 
     def test_if_person_baseuser_created_returns_201_created(self):
         data = {"username": "'name3'", "password": "name3",
@@ -106,3 +118,4 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.client.delete('/api/v1/baseusers/1/', response.data)
         response = User.objects.filter(email='name1@gmail.com')
         self.assertEqual(response.exists(), False)
+
