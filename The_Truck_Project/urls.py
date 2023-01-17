@@ -20,7 +20,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework import routers
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet
-from baseuser.views import registerPage, loginPage, logoutUser, home
+from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
@@ -53,7 +53,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('registerPage/', registerPage, name="registerPage"),
     path('loginPage/', loginPage, name="loginPage"),
-    path('logout/', logoutUser, name="logout"),
+    path('logoutPage/', logoutPage, name="logoutPage"),
     path('password_reset/', auth_views.PasswordResetView.as_view(
         template_name='password_reset.html'), name='password_reset'),
     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(

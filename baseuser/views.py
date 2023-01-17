@@ -179,9 +179,9 @@ def loginPage(request):
         return render(request, 'loginPage.html', context)
 
 
-def logoutUser(request):
+def logoutPage(request):
     logout(request)
-    return redirect('loginPage.html')
+    return redirect('loginPage')
 
 
 def home(request):
