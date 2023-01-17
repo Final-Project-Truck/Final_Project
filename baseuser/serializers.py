@@ -1,7 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from baseuser.models import BaseUsers
-from baseuser.models import Profile
+from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 
 
 class BaseUsersSafeSerializer(ModelSerializer):
@@ -17,8 +16,15 @@ class BaseUsersSerializer(ModelSerializer):
         # extra_kwargs = {'password': {'write_only': True}}
 
 
-class ProfileSerializer(ModelSerializer):
+class UserProfileSerializer(ModelSerializer):
 
     class Meta:
-        model = Profile
+        model = UserProfile
+        fields = '__all__'
+
+
+class CompanyProfileSerializer(ModelSerializer):
+
+    class Meta:
+        model = CompanyProfile
         fields = '__all__'
