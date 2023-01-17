@@ -46,8 +46,8 @@ class UserProfile(models.Model):
 class CompanyProfile(models.Model):
     base_user = models.OneToOneField(BaseUsers, on_delete=models.CASCADE,
                                      related_name='company_profile')
-    company = models.OneToOneField(Company, on_delete=models.SET_NULL,
-                                   related_name='company_user', null=True)
+    company = models.OneToOneField(Company, on_delete=models.RESTRICT,
+                                   related_name='company_user')
     website = models.URLField()
     number_of_employees = models.IntegerField()
     organization_type = models.CharField(max_length=3, choices=company_type)

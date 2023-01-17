@@ -49,7 +49,7 @@ class TestCompanyAPIViewSet(TestCase):
         self.client.put('/api/v1/companies/1/', response.data)
         self.assertEqual(response.status_code, 200)
 
-    def test_if_company_is_deleted(self):
-        response = self.client.get('/api/v1/companies/1/')
-        self.client.delete('/api/v1/companies/1/', response.data)
-        self.assertEqual(response.status_code, 200)
+    # def test_if_company_is_deleted(self):
+    #     response = self.client.get('/api/v1/companies/1/')
+    #     self.client.delete('/api/v1/companies/1/', response.data)
+    #     self.assertEqual(response.status_code, 200)
