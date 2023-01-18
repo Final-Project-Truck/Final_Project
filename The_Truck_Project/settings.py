@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'company',
     'survey',
     'analytics',
+    'authentication',
 ]
 
 MIDDLEWARE = [

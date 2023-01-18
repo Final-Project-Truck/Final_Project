@@ -73,7 +73,6 @@ class CompanyAPIViewSet(ModelViewSet):
 
             """Change is_active to True to activate survey"""
             Survey.objects.filter(pk=survey.id).update(is_active=True)
-            survey.save()
 
             return Response(CompanySerializer(company).data, status=201)
 
