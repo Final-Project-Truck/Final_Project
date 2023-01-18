@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+{% extends 'base.html' %}
+{% block content %}
 <html>
 
 <head>
@@ -22,6 +24,7 @@
 			margin-bottom: auto;
 			background: #1BBAFF;
 			position: relative;
+			top: 400px;
 			display: flex;
 			justify-content: center;
 			flex-direction: column;
@@ -80,9 +83,7 @@
 		<div class="d-flex justify-content-center h-100">
 			<div class="user_card">
 				<div class="d-flex justify-content-center">
-
-
-					<h3 id="form-title">LOGIN</h3>
+					<h3 id="form-title">USER LOGIN</h3>
 				</div>
 				<div class="d-flex justify-content-center form_container">
 					<form method="POST" action="">
@@ -116,7 +117,12 @@
 
 				<div class="mt-4">
 					<div class="d-flex justify-content-center links">
-						Don't have an account? <a href="{% url 'register' %}" class="ml-2">Sign Up</a>
+                            Forgot your password?<a href="{% url 'password_reset' %}" class="ml-2">Forgot Password</a>
+                    </div>
+					<div class="d-flex justify-content-center links">
+						Don't have an account? <a
+							href="{% url 'registerPage' %}" class="ml-2">Sign
+						Up</a>
 					</div>
 
 				</div>
@@ -126,3 +132,4 @@
 </body>
 
 </html>
+{% endblock %}

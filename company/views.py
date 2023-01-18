@@ -3,8 +3,7 @@ from rest_framework import filters
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
-from company.models import Company, JobPosting
+from company.models import JobPosting, Company
 from company.serializers import CompanySerializer, JobPostingSerializer, \
     CompanySearchSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
@@ -98,4 +97,3 @@ class CompanySearchAPIView(ListCreateAPIView):
     filter_backends = (filters.SearchFilter,)
     queryset = Company.objects.all()
     serializer_class = CompanySearchSerializer
-

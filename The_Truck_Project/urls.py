@@ -16,22 +16,24 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from rest_framework import routers
-
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    ProfileUserAPIViewSet
-from baseuser.views import registerPage, loginPage, logoutUser, home
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet
+from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet, JobPostingFilterAPIView, \
-    CompanySearchAPIView, JobPostingAPIViewSet
+    CompanySearchAPIView
+from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
-    AnswerChoiceAPIViewSet, AnswerTextAPIViewSet, \
-    SurveySearchAPIView
+    AnswerChoiceAPIViewSet, AnswerTextAPIViewSet, SurveySearchAPIView
 from survey.views import SurveyQuestionAPIViewSet
+
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
-router.register(r'profile', ProfileUserAPIViewSet)
+router.register(r'user-profile', UserProfileAPIViewSet)
+router.register(r'company-profile', CompanyProfileAPIViewSet)
 router.register(r'jobposting', JobPostingAPIViewSet)
 
 router.register(r'companies', CompanyAPIViewSet)
@@ -43,25 +45,111 @@ router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
+
+urlpatterns = [
+    path('', home, name="home"),
+    path('api-auth/', include('rest_framework.urls')),
+    path('api/v1/', include(router.urls), name="api"),
+    path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
+    path('admin/', admin.site.urls),
+    path('registerPage/', registerPage, name="registerPage"),
+    path('loginPage/', loginPage, name="loginPage"),
+    path('logoutPage/', logoutPage, name="logoutPage"),
+    path('password_reset/', auth_views.PasswordResetView.as_view(
+        template_name='password_reset.html'), name='password_reset'),
+    path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='password_reset_done.html'), name='password_reset_done'),
+    path('reset/<uidb64>/<token>/',
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='password_reset_confirm.html'),
+         name='password_reset_confirm'),
+    path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='password_reset_complete.html'),
+         name='password_reset_complete'),
+    path('api/v1/jobs/', JobPostingFilterAPIView.as_view(), name="job_search"),
+    path('api/v1/comsearch/', CompanySearchAPIView.as_view(),
+     name="com_search"),
+    path('api/v1/surveysearch/', SurveySearchAPIView.as_view(),
+     name='survey_search')
+]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# router = routers.DefaultRouter()
+# router.register(r'baseusers', BaseUsersAPIViewSet)
+# router.register(r'user-profile', UserProfileAPIViewSet)
+# router.register(r'company-profile', CompanyProfileAPIViewSet)
+# router.register(r'jobposting', JobPostingAPIViewSet)
+#
+# router.register(r'companies', CompanyAPIViewSet)
+#
+# router.register(r'survey', SurveyAPIViewSet)
+# router.register(r'questions', QuestionAPIViewSet)
+# router.register(r'survey_questions', SurveyQuestionAPIViewSet)
+# router.register(r'options', OptionAPIViewSet)
+# router.register(r'submissions', SubmissionAPIViewSet)
+# router.register(r'choice_answers', AnswerChoiceAPIViewSet)
+# router.register(r'text_answers', AnswerTextAPIViewSet)
 # router.register(r'searches', SearchAPIView)
 # router.register(r'surveysearch', SurveySearchAPIView)
 
 
 
 
-urlpatterns = [
-    path('', home, name="home"),
-    path('api-auth/', include('rest_framework.urls')),
-    path('api/v1/', include(router.urls)),
-    path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
-    path('admin/', admin.site.urls),
-    path('register/', registerPage, name="register"),
-    path('login/', loginPage, name="login"),
-    path('logout/', logoutUser, name="logout"),
-    # path('searches/', SearchAPIView.as_view(), name="search"),
-    path('api/v1/jobs/', JobPostingFilterAPIView.as_view(), name="job_search"),
-    path('api/v1/comsearch/', CompanySearchAPIView.as_view(),
-         name="com_search"),
-    path('api/v1/surveysearch/', SurveySearchAPIView.as_view(),
-         name='survey_search')
-]
+# urlpatterns = [
+#     path('', home, name="home"),
+#     path('api-auth/', include('rest_framework.urls')),
+#     path('api/v1/', include(router.urls), name="api"),
+#     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
+#     path('admin/', admin.site.urls),
+# <<<<<<< HEAD
+#     path('register/', registerPage, name="register"),
+#     path('login/', loginPage, name="login"),
+#     path('logout/', logoutUser, name="logout"),
+#     # path('searches/', SearchAPIView.as_view(), name="search"),
+#     path('api/v1/jobs/', JobPostingFilterAPIView.as_view(), name="job_search"),
+#     path('api/v1/comsearch/', CompanySearchAPIView.as_view(),
+#          name="com_search"),
+#     path('api/v1/surveysearch/', SurveySearchAPIView.as_view(),
+#          name='survey_search')
+# =======
+#     path('registerPage/', registerPage, name="registerPage"),
+#     path('loginPage/', loginPage, name="loginPage"),
+#     path('logoutPage/', logoutPage, name="logoutPage"),
+#     path('password_reset/', auth_views.PasswordResetView.as_view(
+#         template_name='password_reset.html'), name='password_reset'),
+#     path('password_reset/done/', auth_views.PasswordResetDoneView.as_view(
+#         template_name='password_reset_done.html'), name='password_reset_done'),
+#     path('reset/<uidb64>/<token>/',
+#          auth_views.PasswordResetConfirmView.as_view(
+#              template_name='password_reset_confirm.html'),
+#          name='password_reset_confirm'),
+#     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
+#         template_name='password_reset_complete.html'),
+#          name='password_reset_complete')
+# ]

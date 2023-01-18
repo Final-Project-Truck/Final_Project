@@ -1,19 +1,26 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
+from django.urls import reverse
 from django.shortcuts import render, redirect
 from rest_framework import status, generics, filters
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from rest_framework import status
+
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
 from baseuser.forms import CreateUserForm
-from baseuser.models import BaseUsers, Profile, Search
 from baseuser.serializers import BaseUsersSerializer, \
-    BaseUsersSafeSerializer, SearchSerializer
-from baseuser.serializers import ProfileSerializer
+    BaseUsersSafeSerializer
+from baseuser.models import BaseUsers, UserProfile, CompanyProfile
+from baseuser.serializers import BaseUsersSerializer, \
+    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
+
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -62,7 +69,7 @@ class BaseUsersAPIViewSet(ModelViewSet):
                 username=serializer.validated_data['username'],
                 password=serializer.validated_data["password1"],
                 email=serializer.validated_data["email"]
-                )
+            )
         serializer.save()
 
     def partial_update(self, request, *args, **kwargs):
@@ -105,16 +112,56 @@ def registerPage(request, django_user=None):
                                  djangouser.username)
                 send_mail(
                     'Register Completed',  # Change your Subject
-                    'Thank you for joining our Website',  # Change your message
-                    'Final_Truck_Project@gmail.com',
-                    # Put the email your going to use
+                    '[as a USER]Thank you for joining our Website',  #
+                    # Change your message
+
+                    'struckproject@gmail.com',  # Put the email your going
+                    # to use
                     [user.email],
                     fail_silently=False
                 )
                 return redirect('home')
         else:
             form = CreateUserForm()
-        return render(request, 'register.html', {'form': form})
+            return render(request, 'registerPage.html', {'form': form})
+
+
+def forget_password(request):
+    if request.method == 'POST':
+        email = request.POST['email']
+        try:
+            user = User.objects.get(email=email)
+            if user.is_active:
+                token = default_token_generator.make_token(user)
+                x = reverse("password_reset_confirm",
+                            kwargs={"token": token,
+                                    "uidb64": urlsafe_base64_encode
+                                    (force_bytes(user.pk))})
+                email_body = f'Please click the link below to reset your ' \
+                             f'password: \n' \
+                             f'http://{request.get_host()}' \
+                             f'{x}'
+                send_mail(
+                    'Password reset on your account',
+                    email_body,
+                    'struckproject@gmail.com',
+                    [user.email],
+                    fail_silently=False,
+                )
+                messages.success(request,
+                                 f'An email has been sent to {email} to '
+                                 f'reset your password.')
+                return redirect('login')
+            else:
+                messages.error(request,
+                               'Your account has been deactivated. Please '
+                               'contact the administrator.')
+                return redirect('forget_password')
+        except User.DoesNotExist:
+            messages.error(request, f'No account found with email {email}.')
+            return redirect('forget_password')
+    else:
+        return render(request, 'forget_password.html')
 
 
 def loginPage(request):
@@ -134,25 +181,71 @@ def loginPage(request):
                 messages.info(request, 'Username OR password is incorrect')
 
         context = {}
-        return render(request, 'login.html', context)
+        return render(request, 'loginPage.html', context)
 
 
-def logoutUser(request):
+def logoutPage(request):
     logout(request)
-    return redirect('login')
+    return redirect('loginPage')
 
 
 def home(request):
     return render(request, 'home.html')
 
+class UserProfileAPIViewSet(ModelViewSet):
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
 
-class ProfileUserAPIViewSet(ModelViewSet):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    def create(self, request, *args, **kwargs):
+        serializer = UserProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        base_user = serializer.data['base_user']
+        current_company = serializer.data['current_company']
+        picture = serializer.data['picture']
+        about = serializer.data['about']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'com':
+                return Response(
+                    'A Company cannot create a User Profile'
+                )
+            else:
+                UserProfile.objects.create(base_user_id=base_user,
+                                           current_company_id=current_company,
+                                           picture=picture, about=about)
+                return Response(serializer.data, status=201)
 
 
-# class SearchAPIView(ModelViewSet):
-#     search_fields = ['key_word']
-#     filter_backends = (filters.SearchFilter,)
-#     queryset = Search.objects.all()
-#     serializer_class = SearchSerializer
+class CompanyProfileAPIViewSet(ModelViewSet):
+    queryset = CompanyProfile.objects.all()
+    serializer_class = CompanyProfileSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = CompanyProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        base_user = serializer.data['base_user']
+        company = serializer.data['company']
+        website = serializer.data['website']
+        number_of_employees = serializer.data['number_of_employees']
+        organization_type = serializer.data['organization_type']
+        revenue = serializer.data['revenue']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+        with transaction.atomic():
+            if user_reference.user_type == 'per':
+                return Response(
+                    'A Person cannot create a Company Profile'
+                )
+            else:
+                CompanyProfile.objects.create(
+                    base_user_id=base_user, company_id=company,
+                    website=website,
+                    number_of_employees=number_of_employees,
+                    organization_type=organization_type,
+                    revenue=revenue)
+                return Response(serializer.data, status=201)
+

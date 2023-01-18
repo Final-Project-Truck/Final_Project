@@ -3,8 +3,7 @@ from rest_framework import filters
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from company.models import Company, JobPosting
-from company.serializers import JobPostingSerializer
+from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
 from survey.serializers import SurveySerializer, QuestionSerializer, \
@@ -99,9 +98,25 @@ class QuestionAPIViewSet(ModelViewSet):
     serializer_class = QuestionSerializer
 
 
-# todo if implementation of template questions are done,
-#  check if only user created
-# todo questions can be edited but not the template questions
+    def update(self, request, *args, **kwargs):
+        question = self.get_object()
+        serializer = self.get_serializer(question, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question.id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot update template questions')
+            elif survey_question:
+                return Response('Question is used in another survey and '
+                                'cannot edit it')
+            else:
+                Question.objects.filter(id=question.id).update(
+                    prompt=serializer.validated_data['prompt'],
+                    type=serializer.validated_data['type'],
+                    template_question='f')
+                return Response('Question updated')
 
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
@@ -161,6 +176,26 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
+
+    def update(self, request, *args, **kwargs):
+        option = self.get_object()
+        serializer = self.get_serializer(option, data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=option.question_id)
+        question = Question.objects.get(id=option.question_id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot update template options')
+            elif survey_question:
+                return Response('Option is used in another survey and '
+                                'cannot edit it')
+            else:
+                Option.objects.filter(id=option.id).update(
+                    text=serializer.validated_data['text'],
+                    question_id=serializer.validated_data['question'])
+                return Response('Options updated')
 
 
 class SubmissionAPIViewSet(ModelViewSet):
