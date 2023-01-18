@@ -1,5 +1,4 @@
 from rest_framework.serializers import ModelSerializer
-
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 
 
