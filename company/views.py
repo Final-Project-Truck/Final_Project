@@ -1,9 +1,12 @@
 from django.db import transaction
+from rest_framework import filters
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from company.models import Company, JobPosting
-from company.serializers import CompanySerializer, JobPostingSerializer
+from company.serializers import CompanySerializer, JobPostingSerializer, \
+    CompanySearchSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
 
 
@@ -81,3 +84,18 @@ class CompanyAPIViewSet(ModelViewSet):
 class JobPostingAPIViewSet(ModelViewSet):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
+
+
+class JobPostingFilterAPIView(ListCreateAPIView):
+    search_fields = ['job_title', 'company__name', 'description']
+    filter_backends = (filters.SearchFilter,)
+    queryset = JobPosting.objects.all()
+    serializer_class = JobPostingSerializer
+
+
+class CompanySearchAPIView(ListCreateAPIView):
+    search_fields = ['company__name']
+    filter_backends = (filters.SearchFilter,)
+    queryset = Company.objects.all()
+    serializer_class = CompanySearchSerializer
+

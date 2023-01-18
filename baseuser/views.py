@@ -151,8 +151,8 @@ class ProfileUserAPIViewSet(ModelViewSet):
     serializer_class = ProfileSerializer
 
 
-class SearchAPIView(generics.ListCreateAPIView):
-    search_fields = ['key_word']
-    filter_backends = (filters.SearchFilter,)
-    queryset = Search.objects.all()
-    serializer_class = SearchSerializer
+# class SearchAPIView(ModelViewSet):
+#     search_fields = ['key_word']
+#     filter_backends = (filters.SearchFilter,)
+#     queryset = Search.objects.all()
+#     serializer_class = SearchSerializer

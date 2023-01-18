@@ -59,3 +59,10 @@ class SubmissionSerializer(ModelSerializer):
     class Meta:
         model = Submission
         fields = '__all__'
+
+
+class SurveySearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Survey
+        fields = '__all__'

@@ -1,7 +1,10 @@
 from django.db import transaction
+from rest_framework import filters
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from company.models import Company
+from company.models import Company, JobPosting
+from company.serializers import JobPostingSerializer
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
 from survey.serializers import SurveySerializer, QuestionSerializer, \
@@ -10,6 +13,8 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 
 
 class SurveyAPIViewSet(ModelViewSet):
+    search_fields = ['title', 'company__name', 'creator__username']
+    filter_backends = (filters.SearchFilter,)
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
 
@@ -67,6 +72,7 @@ class SurveyAPIViewSet(ModelViewSet):
     '''
     Do not allow user to inactivate the survey if submission is created for it
     '''
+
     def update(self, request, *args, **kwargs):
         survey = self.get_object()
         serializer = self.get_serializer(survey, data=request.data)
@@ -91,6 +97,7 @@ class SurveyAPIViewSet(ModelViewSet):
 class QuestionAPIViewSet(ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+
 
 # todo if implementation of template questions are done,
 #  check if only user created
@@ -144,7 +151,7 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
         else:
             if serializer.data['survey'] == survey_question.survey_id:
                 SurveyQuestion.objects.filter(id=survey_question.id,
-                                              survey_id=survey_chosen.id).\
+                                              survey_id=survey_chosen.id). \
                     update(question=serializer.validated_data['question'])
                 return Response('Survey_Question updated', status=201)
             else:
@@ -289,7 +296,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
                 submission_id=serializer.validated_data['submission'],
                 question_id=serializer.validated_data['question'],
                 option_id=serializer.validated_data['option']
-                )
+            )
             serializer.save()
             return Response(serializer.data)
         else:
@@ -353,8 +360,17 @@ class AnswerTextAPIViewSet(ModelViewSet):
                 submission_id=serializer.validated_data['submission'],
                 question_id=serializer.validated_data['question'],
                 comment=serializer.validated_data['comment']
-                )
+            )
             serializer.save()
             return Response(serializer.data)
         else:
             return Response('Invalid update')
+
+
+class SurveySearchAPIView(ListCreateAPIView):
+    search_fields = ['title', 'company__name', 'creator__username']
+    filter_backends = (filters.SearchFilter,)
+    queryset = Survey.objects.all()
+    serializer_class = SurveySerializer
+
+

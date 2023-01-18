@@ -85,3 +85,13 @@ class AnswerText(models.Model):
 
     def __str__(self):
         return f'{self.submission}'
+
+
+class SurveySearch(models.Model):
+    survey_search = models.ForeignKey(Survey, on_delete=models.CASCADE,
+                                   related_name='surveysearch')
+    pub_date = models.DateTimeField('date published', null=True)
+    author = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.survey_search.name

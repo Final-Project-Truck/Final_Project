@@ -13,3 +13,10 @@ class JobPostingSerializer(ModelSerializer):
     class Meta:
         model = JobPosting
         fields = '__all__'
+
+
+class CompanySearchSerializer(ModelSerializer):
+
+    class Meta:
+        model = Company
+        fields = '__all__'
