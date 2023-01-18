@@ -9,5 +9,4 @@ class IsOwner(permissions.BasePermission):
             return False
 
     def has_object_permission(self, request, view, obj):
-        #return obj.client == request.user.client
         return obj.creator == request.user.baseuser
