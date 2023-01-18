@@ -36,18 +36,18 @@ jobs:
 
       - name: Run migrations
         env:
-          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
-          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
+          EMAIL_HOST_USER: 'struckproject@gmail.com'
+          EMAIL_HOST_PASSWORD: 'qeglhhxcnqlkdedb'
         run: python manage.py migrate
       - name: Run tests
         env:
-          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
-          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
+          EMAIL_HOST_USER: 'struckproject@gmail.com'
+          EMAIL_HOST_PASSWORD: 'qeglhhxcnqlkdedb'
         run: python manage.py test
       - name: Coverage
         env:
-          EMAIL_HOST_USER: 'ADD YOUR HOST_USER'
-          EMAIL_HOST_PASSWORD: 'ADD_YOUR_PASSWORD'
+          EMAIL_HOST_USER: 'struckproject@gmail.com'
+          EMAIL_HOST_PASSWORD: 'qeglhhxcnqlkdedb'
         run: |
           coverage run --source . manage.py test
           coverage report --fail-under 60
