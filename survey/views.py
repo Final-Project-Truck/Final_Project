@@ -1,10 +1,10 @@
 from django.db import transaction
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
-from authentication.permissions import IsOwner
+from rest_framework import permissions
+from authentication.permissions import IsOwner, IsSurveyOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
@@ -96,7 +96,7 @@ class SurveyAPIViewSet(ModelViewSet):
         if not survey.creator:
             return Response('Template survey cannot be edited')
         elif survey_submission and not serializer.validated_data['is_active']:
-            return Response('Cannot inactivate survey, submission is '
+            return Response('Cannot inactivate/update survey, submission is '
                             'already created.')
         elif survey_submission:
             return Response('Cannot update the survey,submission is already '
@@ -109,6 +109,20 @@ class SurveyAPIViewSet(ModelViewSet):
                 company=serializer.validated_data['company'],
                 is_active=serializer.validated_data['is_active'])
             return Response('Survey updated', status=201)
+
+    def destroy(self, request, *args, **kwargs):
+        survey_chosen = self.get_object()
+        if not survey_chosen.is_active:
+            self.perform_destroy(survey_chosen)
+        elif request.user and request.user.is_staff:
+            self.perform_destroy(survey_chosen)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response('Only authorized user can delete the survey')
+
+    def perform_destroy(self, survey_chosen):
+        with transaction.atomic():
+            survey_chosen.delete()
 
 
 class QuestionAPIViewSet(ModelViewSet):
@@ -136,11 +150,28 @@ class QuestionAPIViewSet(ModelViewSet):
                     template_question='f')
                 return Response('Question updated')
 
+    def destroy(self, request, *args, **kwargs):
+        question = self.get_object()
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question.id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot delete template questions')
+            elif survey_question:
+                return Response('Question is used in another survey and '
+                                'cannot delete it')
+            else:
+                self.perform_destroy(question)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, question):
+        with transaction.atomic():
+            question.delete()
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
     queryset = SurveyQuestion.objects.all()
     serializer_class = SurveyQuestionSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSurveyOwner]
 
     '''
     Add questions to the survey, if the survey is not active.
@@ -178,7 +209,8 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
         serializer = self.get_serializer(survey_question, data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        survey_chosen = Survey.objects.get(id=survey_question.survey_id)
+        survey_chosen = Survey.objects.get(id=survey_question.survey_id,
+                                           creator=request.user.id)
 
         if survey_chosen.is_active:
             return Response('Survey is active, cannot update questions')
@@ -191,6 +223,23 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             else:
                 return Response('Edit only the chosen survey')
 
+    def destroy(self, request, *args, **kwargs):
+        survey_question = self.get_object()
+        survey_chosen = Survey.objects.get(
+            id=survey_question.survey_id)
+        question_chosen = Question.objects.get(id=survey_question.question_id)
+        with transaction.atomic():
+            if survey_chosen.is_active:
+                return Response('Cannot delete survey when active')
+            elif question_chosen.template_question:
+                return Response('Cannot delete template question')
+            else:
+                self.perform_destroy(survey_question)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, survey_question):
+        with transaction.atomic():
+            survey_question.delete()
 
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
@@ -216,6 +265,24 @@ class OptionAPIViewSet(ModelViewSet):
                     text=serializer.validated_data['text'],
                     question_id=serializer.validated_data['question'])
                 return Response('Options updated')
+
+    def destroy(self, request, *args, **kwargs):
+        option = self.get_object()
+        survey_option = SurveyQuestion.objects.filter(
+            question_id=option.question.id)
+        with transaction.atomic():
+            if option.template_question:
+                return Response('Cannot delete template options')
+            elif survey_option:
+                return Response('Option is used in another survey and '
+                                'cannot delete it')
+            else:
+                self.perform_destroy(option)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, option):
+        with transaction.atomic():
+            option.delete()
 
 
 class SubmissionAPIViewSet(ModelViewSet):
@@ -298,9 +365,16 @@ class SubmissionAPIViewSet(ModelViewSet):
                 'Complete the survey to submit it / Invalid submission')
 
     def destroy(self, request, *args, **kwargs):
-        survey_chosen = self.get_object()
-        self.perform_destroy(survey_chosen)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        submission_survey = self.get_object()
+        if not submission_survey.is_complete:
+            self.perform_destroy(submission_survey)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.user and request.user.is_staff:
+            self.perform_destroy(submission_survey)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response('Only authorized user can delete completed '
+                            'submission')
 
     def perform_destroy(self, survey_chosen):
         with transaction.atomic():
@@ -367,7 +441,6 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
             return Response(serializer.data)
         else:
             return Response('Invalid update')
-
 
 class AnswerTextAPIViewSet(ModelViewSet):
     queryset = AnswerText.objects.all()

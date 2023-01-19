@@ -11,7 +11,7 @@ from survey.models import Survey, Question, SurveyQuestion
 
 
 class TestCompanyAPIViewSet(TestCase):
-    reset_sequences = True
+    #reset_sequences = True
 
     @classmethod
     def setUpTestData(cls):
@@ -60,7 +60,7 @@ class TestCompanyAPIViewSet(TestCase):
 
     def tearDown(self):
         self.client.logout()
-        self.reset_sequences = True
+        #self.reset_sequences = True
 
     @classmethod
     def tearDownClass(cls):
@@ -74,6 +74,8 @@ class TestCompanyAPIViewSet(TestCase):
         cls.surveyquestion3.clean()
         cls.test_user.clean()
         cls.django_user_company_test.clean()
+        survey = Survey.objects.all()
+        #survey.delete()
 
 
 
