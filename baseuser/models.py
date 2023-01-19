@@ -39,7 +39,7 @@ class UserProfile(models.Model):
     past_companies = models.ManyToManyField(Company, blank=True,
                                             related_name='past_companies')
     picture = models.ImageField(upload_to='profile_images',
-                                default='tinyurl.com/2a382vsm')
+                                default='profile_images/default.jpg')
     about = models.TextField(max_length=250, null=True)
 
 

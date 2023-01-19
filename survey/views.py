@@ -1,9 +1,8 @@
 from django.db import transaction
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import permissions
 from authentication.permissions import IsOwner, IsSurveyOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
@@ -35,7 +34,8 @@ class SurveyAPIViewSet(ModelViewSet):
             ''' Check if the user already created a survey for the company'''
             if Survey.objects.filter(creator_id=request.user.baseuser.id,
                                      company_id=company):
-                return Response('You cannot create multiple surveys for a company')
+                return Response('You cannot create '
+                                'multiple surveys for a company')
             else:
                 with transaction.atomic():
                     if serializer.data['is_active']:
@@ -114,11 +114,12 @@ class SurveyAPIViewSet(ModelViewSet):
         survey_chosen = self.get_object()
         if not survey_chosen.is_active:
             self.perform_destroy(survey_chosen)
-        elif request.user and request.user.is_staff:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.user.is_staff:
             self.perform_destroy(survey_chosen)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
-            return Response('Only authorized user can delete the survey')
+            return Response('Survey cannot be deleted while active')
 
     def perform_destroy(self, survey_chosen):
         with transaction.atomic():
@@ -167,6 +168,7 @@ class QuestionAPIViewSet(ModelViewSet):
     def perform_destroy(self, question):
         with transaction.atomic():
             question.delete()
+
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
     queryset = SurveyQuestion.objects.all()
@@ -241,6 +243,7 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
         with transaction.atomic():
             survey_question.delete()
 
+
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
@@ -288,7 +291,7 @@ class OptionAPIViewSet(ModelViewSet):
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsSurveyOwner]
 
     '''
     Create a submission only if the survey chosen by user is active.
@@ -303,7 +306,7 @@ class SubmissionAPIViewSet(ModelViewSet):
         survey = serializer.data['survey']
         created = serializer.data['created_at']
         is_complete = serializer.data['is_complete']
-        submitter = serializer.data['submitter']
+        # submitter = serializer.data['submitter']
 
         survey_chosen = Survey.objects.get(
             id=serializer.validated_data['survey'].id)
@@ -314,10 +317,11 @@ class SubmissionAPIViewSet(ModelViewSet):
                         'Submission cannot be completed during creation, '
                         'Please uncheck is_complete')
                 else:
-                    Submission.objects.create(survey_id=survey,
-                                              created_at=created,
-                                              is_complete=is_complete,
-                                              submitter_id=submitter)
+                    Submission.objects.create(
+                        survey_id=survey,
+                        created_at=created,
+                        is_complete=is_complete,
+                        submitter_id=request.user.baseuser.id)
 
                     return Response(serializer.data, status=201)
             else:
@@ -358,7 +362,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 survey_id=serializer.validated_data['survey'],
                 created_at=serializer.validated_data['created_at'],
                 is_complete=serializer.validated_data['is_complete'],
-                submitter_id=serializer.validated_data['submitter'])
+                submitter_id=request.user.baseuser.id)
             return Response('Survey updated')
         else:
             return Response(
@@ -441,6 +445,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
             return Response(serializer.data)
         else:
             return Response('Invalid update')
+
 
 class AnswerTextAPIViewSet(ModelViewSet):
     queryset = AnswerText.objects.all()
