@@ -11,7 +11,6 @@ from survey.models import Survey, Question, SurveyQuestion
 
 
 class TestCompanyAPIViewSet(TestCase):
-    #reset_sequences = True
 
     @classmethod
     def setUpTestData(cls):
@@ -23,7 +22,7 @@ class TestCompanyAPIViewSet(TestCase):
             email='ctname@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
-            django_user=cls.django_user_company_test )
+            django_user=cls.django_user_company_test)
 
         cls.company_test = Company.objects.create(
             name='company_name',
@@ -56,11 +55,10 @@ class TestCompanyAPIViewSet(TestCase):
 
         self.client = APIClient()
         self.logged_in_user = self.client.login(username='ctname',
-                                           password='ctname')
+                                                password='ctname')
 
     def tearDown(self):
         self.client.logout()
-        #self.reset_sequences = True
 
     @classmethod
     def tearDownClass(cls):
@@ -74,17 +72,12 @@ class TestCompanyAPIViewSet(TestCase):
         cls.surveyquestion3.clean()
         cls.test_user.clean()
         cls.django_user_company_test.clean()
-        survey = Survey.objects.all()
-        #survey.delete()
-
-
 
     def test_if_company_created_returns_201_created(self):
         data = {"name": "'company_name_1'", "location": "company_location",
                 "description": "company_description"}
         response = self.client.post('/api/v1/companies/', data)
         self.assertEqual(response.status_code, 201)
-
 
     def test_if_survey_is_created_when_company_created_returns_True_if_exists(
             self):
@@ -93,7 +86,6 @@ class TestCompanyAPIViewSet(TestCase):
         self.client.post('/api/v1/companies/', data)
         output = get_object_or_404(Survey, title="'company_name_2'")
         self.assertNotEqual(output, 404)
-
 
     def test_get_company_list(self):
         response = self.client.get('/api/v1/companies/')

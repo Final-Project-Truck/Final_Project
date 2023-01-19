@@ -1,9 +1,8 @@
 from django.db import transaction
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import permissions
 from authentication.permissions import IsOwner, IsSurveyOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
@@ -35,7 +34,8 @@ class SurveyAPIViewSet(ModelViewSet):
             ''' Check if the user already created a survey for the company'''
             if Survey.objects.filter(creator_id=request.user.baseuser.id,
                                      company_id=company):
-                return Response('You cannot create multiple surveys for a company')
+                return Response(
+                    'You cannot create multiple surveys for a company')
             else:
                 with transaction.atomic():
                     if serializer.data['is_active']:
@@ -168,6 +168,7 @@ class QuestionAPIViewSet(ModelViewSet):
         with transaction.atomic():
             question.delete()
 
+
 class SurveyQuestionAPIViewSet(ModelViewSet):
     queryset = SurveyQuestion.objects.all()
     serializer_class = SurveyQuestionSerializer
@@ -240,6 +241,7 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
     def perform_destroy(self, survey_question):
         with transaction.atomic():
             survey_question.delete()
+
 
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
@@ -441,6 +443,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
             return Response(serializer.data)
         else:
             return Response('Invalid update')
+
 
 class AnswerTextAPIViewSet(ModelViewSet):
     queryset = AnswerText.objects.all()

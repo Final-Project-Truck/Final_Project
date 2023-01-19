@@ -11,12 +11,14 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.first_django_user = User.objects.create_user(id=100,
+        cls.first_django_user = User.objects.create_user(
+            id=100,
             username='name1',
             password='name1',
             email='name1@gmail.com')
 
-        cls.second_django_user = User.objects.create_user(id=101,
+        cls.second_django_user = User.objects.create_user(
+            id=101,
             username='name2',
             password='name2',
             email='name2@gmail.com')
@@ -37,7 +39,8 @@ class TestBaseUsersAPIViewSet(TestCase):
             date_created=datetime.date.fromisocalendar,
             django_user=cls.second_django_user, user_type='com')
 
-        cls.company = Company.objects.create(id=500,
+        cls.company = Company.objects.create(
+            id=500,
             name='test_company',
             location='company_location',
             description='company_description')
