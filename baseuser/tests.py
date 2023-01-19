@@ -12,16 +12,19 @@ class TestBaseUsersAPIViewSet(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.first_django_user = User.objects.create_user(
+            id=100,
             username='person',
             password='name1',
             email='name1@gmail.com')
 
         cls.second_django_user = User.objects.create_user(
+            id=101,
             username='company',
             password='name2',
             email='name2@gmail.com')
 
         cls.person_user = BaseUsers.objects.create(
+            id=100,
             username='person',
             password1='name1',
             password2='name1', email='name1@gmail.com',
@@ -29,6 +32,7 @@ class TestBaseUsersAPIViewSet(TestCase):
             django_user=cls.first_django_user, user_type='per')
 
         cls.company_user = BaseUsers.objects.create(
+            id=101,
             username='company',
             password1='name2',
             password2='name2', email='name2@gmail.com',
@@ -36,6 +40,7 @@ class TestBaseUsersAPIViewSet(TestCase):
             django_user=cls.second_django_user, user_type='com')
 
         cls.company = Company.objects.create(
+            id=500,
             name='test_company',
             location='company_location',
             description='company_description')
@@ -76,30 +81,30 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_get_baseuser_instance_returns_200_ok(self):
-        response = self.client.get('/api/v1/baseusers/1/')
+        response = self.client.get('/api/v1/baseusers/100/')
         self.assertEqual(response.status_code, 200)
 
     def test_if_baseuser_is_updated_returns_200_ok(self):
-        response = self.client.get('/api/v1/baseusers/1/')
+        response = self.client.get('/api/v1/baseusers/100/')
         response.data['username'] = 'Divya'
         self.client.put('/api/v1/baseusers/1/', response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_if_django_user_is_updated_when_baseuser_is_updated(self):
-        response = self.client.get('/api/v1/baseusers/1/')
+        response = self.client.get('/api/v1/baseusers/100/')
         response.data['username'] = 'Divya'
-        self.client.put('/api/v1/baseusers/1/', response.data)
+        self.client.put('/api/v1/baseusers/100/', response.data)
         django_user = User.objects.get(email=response.data['email'])
         self.assertEqual(django_user.username, 'Divya')
 
     def test_if_baseuser_is_deleted(self):
-        response = self.client.get('/api/v1/baseusers/1/')
-        self.client.delete('/api/v1/baseusers/1/', response.data)
+        response = self.client.get('/api/v1/baseusers/100/')
+        self.client.delete('/api/v1/baseusers/100/', response.data)
         self.assertEqual(response.status_code, 200)
 
     def test_if_django_user_is_deleted_if_baseuser_is_deleted(self):
-        response = self.client.get('/api/v1/baseusers/1/')
-        self.client.delete('/api/v1/baseusers/1/', response.data)
+        response = self.client.get('/api/v1/baseusers/100/')
+        self.client.delete('/api/v1/baseusers/100/', response.data)
         response = User.objects.filter(email='name1@gmail.com')
         self.assertEqual(response.exists(), False)
 
@@ -112,7 +117,7 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     """Company Profile Tests"""
     def test_if_company_can_create_a_company_profile(self):
-        data = {"base_user": 2, "company": 1,
+        data = {"base_user": 101, "company": 500,
                 "website": "https://www.google.com/",
                 "number_of_employees": 100,
                 "organization_type": "pub", "revenue": 1000}

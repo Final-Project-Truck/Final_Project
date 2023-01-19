@@ -44,11 +44,11 @@ jobs:
         env:
           EMAIL_HOST_USER: 'struckproject@gmail.com'
           EMAIL_HOST_PASSWORD: 'qeglhhxcnqlkdedb'
-        run: python manage.py test --parallel
+        run: python manage.py test
       - name: Coverage
         env:
           EMAIL_HOST_USER: 'struckproject@gmail.com'
           EMAIL_HOST_PASSWORD: 'qeglhhxcnqlkdedb'
         run: |
-          coverage run --source . manage.py test --parallel
-          coverage report --fail-under 40
+          coverage run --source . manage.py test
+          coverage report --fail-under 60
