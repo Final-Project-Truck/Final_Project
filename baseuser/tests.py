@@ -52,7 +52,6 @@ class TestBaseUsersAPIViewSet(TestCase):
         cls.company_user.clean()
         cls.company.clean()
 
-
     def test_if_person_baseuser_created_returns_201_created(self):
         data = {"username": "'name3'", "password": "name3",
                 "email": "name3@gmail.com", "user_type": "per"}
