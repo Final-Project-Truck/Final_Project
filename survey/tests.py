@@ -14,60 +14,60 @@ class TestSurveyAPIViewSet(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        existing_surveys = Survey.objects.all()
-        print(existing_surveys)
-        existing_companies = Company.objects.all()
-        print(existing_companies)
+        # existing_surveys = Survey.objects.all()
+        # print(existing_surveys)
+        # existing_companies = Company.objects.all()
+        # print(existing_companies)
 
-        cls.django_user = User.objects.create_user(
+        cls.django_user = User.objects.create_user(id=1,
              username='name10', password='name10', email='name10@gmail.com')
 
-        cls.django_user2 = User.objects.create_user(
+        cls.django_user2 = User.objects.create_user(id=2,
             username='name11', password='name11', email='name11@gmail.com')
 
-        cls.django_company_user = User.objects.create_user(
+        cls.django_company_user = User.objects.create_user(id=3,
             username='cname', password='cname', email='cname@gmail.com')
 
-        cls.user = BaseUsers.objects.create(
+        cls.user = BaseUsers.objects.create(id=1,
             username='name10', password1='name10', password2='name10',
             email='name10@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
             django_user=cls.django_user)
 
-        cls.user2 = BaseUsers.objects.create(
+        cls.user2 = BaseUsers.objects.create(id=2,
             username='name11', password1='name11', password2='name11',
             email='name11@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
             django_user=cls.django_user2)
 
-        cls.company_user = BaseUsers.objects.create(
+        cls.company_user = BaseUsers.objects.create(id=3,
             username='cname', password1='cname', password2='cname',
             email='cname@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='com',
             django_user=cls.django_company_user)
 
-        cls.company = Company.objects.create(
+        cls.company = Company.objects.create(id=501,
             name='peter', location='here', description='text')
 
-        cls.company2 = Company.objects.create(
+        cls.company2 = Company.objects.create(id=502,
             name='peter2', location='here', description='text')
 
-        cls.template_survey = Survey.objects.create(
+        cls.template_survey = Survey.objects.create(id=200,
             title='peter', is_active=False, creator_id=None,
             company_id=cls.company.id, created_at='2022-12-12')
 
-        cls.template_survey_2 = Survey.objects.create(
+        cls.template_survey_2 = Survey.objects.create(id=201,
             title='peter2', is_active=False, creator_id=None,
             company_id=cls.company2.id, created_at='2022-12-12')
 
-        cls.survey1 = Survey.objects.create(
+        cls.survey1 = Survey.objects.create(id=300,
             title='User_Survey', is_active=False, creator_id=1,
             company_id=cls.company.id, created_at='2022-12-12')
 
-        cls.survey2 = Survey.objects.create(
+        cls.survey2 = Survey.objects.create(id=301,
             title='Active_Survey', is_active=False, creator_id=2,
             company_id=cls.company.id, created_at='2022-12-12')
 
@@ -109,10 +109,10 @@ class TestSurveyAPIViewSet(TestCase):
                                            password='name10')
         if self.logged_in_user:
             survey = Survey.objects.filter(creator=1)
-            test = self.client.get('/api/v1/survey/3/')
+            test = self.client.get('/api/v1/survey/300/')
             self.assertEqual(test.status_code, 200)
             test.data['is_active'] = True
-            self.client.put('/api/v1/survey/3/', test.data)
+            self.client.put('/api/v1/survey/300/', test.data)
 
     def tearDown(self):
         self.client.logout()
@@ -152,7 +152,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='name11',
                          password='name11')
         new_survey = {"title": "'new_survey'", "is_active": False,
-                      "creator": 2, "company": 2, "created_at":
+                      "creator": 2, "company": 502, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
         self.assertEqual(response.status_code, 201)
@@ -162,7 +162,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='name11',
                          password='name11')
         new_survey = {"title": "'newest_survey'", "is_active": False,
-                      "creator": 2, "company": 1, "created_at":
+                      "creator": 2, "company": 501, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
         self.assertEqual(response.data,
@@ -173,7 +173,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='cname',
                           password='cname')
         new_survey = {"title": "'com_survey'", "is_active": False,
-                      "creator": 3, "company": 2, "created_at":
+                      "creator": 3, "company": 502, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
         self.assertEqual(response.data, 'User of type company create a '
@@ -182,7 +182,7 @@ class TestSurveyAPIViewSet(TestCase):
 
     def test_if_survey_created_is_active_True_returns_response_message(self):
         new_survey = {"title": "'Survey 2'", "is_active": True,
-                      "creator": 1, "company": 2, "created_at":
+                      "creator": 1, "company": 502, "created_at":
                           "2022-12-12"}
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
@@ -194,7 +194,7 @@ class TestSurveyAPIViewSet(TestCase):
     def test_survey_template_questions_added_to_survey_when_user_creates_survey(
             self):
         new_survey = {"title": "'Survey 2'", "is_active": False,
-                      "creator": 2, "company": 2, "created_at":
+                      "creator": 2, "company": 502, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
         template_questions = self.client.get('/api/v1/survey_questions/')
@@ -209,29 +209,31 @@ class TestSurveyAPIViewSet(TestCase):
     user is able to update the survey until submission is created
     '''
     def test_if_survey_returns_200_when_updated(self):
-        response = self.client.get('/api/v1/survey/3/')
+        response = self.client.get('/api/v1/survey/300/')
         response.data['title'] = 'Peter is awesome'
-        updated_response = self.client.put('/api/v1/survey/3/', response.data)
+        updated_response = self.client.put('/api/v1/survey/300/',
+                                           response.data)
         self.assertEqual(updated_response.data, 'Survey updated')
 
     def test_message_when_active_submission_and_user_closes_survey(self):
-        submission = {"is_complete": False, "survey": 3,
+        submission = {"is_complete": False, "survey": 300,
                       "submitter": 1, "created_at": "2022-12-12"}
         self.client.post('/api/v1/submissions/', submission)
-        response = self.client.get('/api/v1/survey/3/')
+        response = self.client.get('/api/v1/survey/300/')
         response.data['is_active'] = False
-        updated_response = self.client.put('/api/v1/survey/3/', response.data)
+        updated_response = self.client.put('/api/v1/survey/300/',
+                                           response.data)
         self.assertEqual(updated_response.data, 'Cannot inactivate/update '
                                                 'survey, submission is already created.')
 
     def test_if_user_created_submission_returns_201(self):
-        submission = {"is_complete": False, "survey": 3,
+        submission = {"is_complete": False, "survey": 300,
                       "submitter": 1, "created_at": "2022-12-12"}
         response = self.client.post('/api/v1/submissions/', submission)
         self.assertEqual(response.status_code, 201)
 
     def test_if_user_created_submission_fails_when_survey_is_inactive(self):
-        submission = {"is_complete": False, "survey": 4,
+        submission = {"is_complete": False, "survey": 301,
                       "submitter": 2, "created_at": "2022-12-12"}
         response = self.client.post('/api/v1/submissions/', submission)
         self.assertEqual(response.data,
