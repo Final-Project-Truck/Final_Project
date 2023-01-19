@@ -163,16 +163,16 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(response.data,
                          'You cannot create multiple surveys for a company')
 
-    # def test_if_company_user_survey_created_returns_error_message(self):
-    #     self.tearDown()
-    #     self.logged_in_user = self.client.login(username='cname',
-    #                                             password='cname')
-    #     new_survey = {"title": "'com_survey'", "is_active": False,
-    #                   "creator": 3, "company": 2, "created_at":
-    #                       "2022-12-12"}
-    #     response = self.client.post('/api/v1/survey/', new_survey)
-    #     self.assertEqual(response.data, 'User of type company create a '
-    #                                     'survey')
+    def test_if_company_user_survey_created_returns_error_message(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='cname',
+                                                password='cname')
+        new_survey = {"title": "'com_survey'", "is_active": False,
+                      "creator": 3, "company": 2, "created_at":
+                          "2022-12-12"}
+        response = self.client.post('/api/v1/survey/', new_survey)
+        self.assertEqual(response.data, 'User of type company create a '
+                                        'survey')
 
     def test_if_survey_created_is_active_True_returns_response_message(self):
         new_survey = {"title": "'Survey 2'", "is_active": True,
