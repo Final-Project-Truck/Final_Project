@@ -173,8 +173,8 @@ class TestSurveyAPIViewSet(TestCase):
                       "creator": 3, "company": 502, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
-        self.assertEqual(response.data, 'User of type company create a '
-                                        'survey')
+        self.assertEqual(response.data,
+                         'User of type company can not create a survey')
 
     def test_if_survey_created_is_active_True_returns_response_message(self):
         new_survey = {"title": "'Survey 2'", "is_active": True,

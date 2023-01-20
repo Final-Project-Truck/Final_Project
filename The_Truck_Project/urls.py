@@ -17,7 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from rest_framework import routers
+from rest_framework import routers, permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutPage, home
@@ -28,15 +30,25 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
 
+schema_view = get_schema_view(
+   openapi.Info(
+      title="The_Truck_Project",
+      default_version='v1',
+      description="Make a Survey",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="theman198888@gmail.com"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+   permission_classes=[permissions.AllowAny],
+)
 
 router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
 router.register(r'user-profile', UserProfileAPIViewSet)
 router.register(r'company-profile', CompanyProfileAPIViewSet)
 router.register(r'jobposting', JobPostingAPIViewSet)
-
 router.register(r'companies', CompanyAPIViewSet)
-
 router.register(r'survey', SurveyAPIViewSet)
 router.register(r'questions', QuestionAPIViewSet)
 router.register(r'survey_questions', SurveyQuestionAPIViewSet)
@@ -46,6 +58,8 @@ router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
 
 urlpatterns = [
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
+         name='schema-swagger-ui'),
     path('', home, name="home"),
     path('api-auth/', include('rest_framework.urls')),
     path('api/v1/', include(router.urls), name="api"),
