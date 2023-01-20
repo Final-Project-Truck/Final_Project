@@ -62,11 +62,11 @@ class TestSurveyAPIViewSet(TestCase):
             id=502, name='peter2', location='here', description='text')
 
         cls.template_survey = Survey.objects.create(
-            id=200, title='peter', is_active=False, creator_id=None,
+            id=200, title='Template Survey', is_active=False, creator_id=None,
             company_id=cls.company.id, created_at='2022-12-12')
 
         cls.template_survey_2 = Survey.objects.create(
-            id=201, title='peter2', is_active=False, creator_id=None,
+            id=201, title='Template Survey', is_active=False, creator_id=None,
             company_id=cls.company2.id, created_at='2022-12-12')
 
         cls.survey1 = Survey.objects.create(

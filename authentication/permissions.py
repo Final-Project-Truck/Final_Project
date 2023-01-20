@@ -9,7 +9,10 @@ class IsOwner(permissions.BasePermission):
             return False
 
     def has_object_permission(self, request, view, obj):
-        return obj.creator == request.user.baseuser
+        if request.user.baseuser.user_type == "com":
+            return obj.company.base_user == request.user.baseuser
+        elif request.user.baseuser.user_type == "per":
+            return obj.creator == request.user.baseuser
 
 
 class IsSurveyOwner(permissions.BasePermission):

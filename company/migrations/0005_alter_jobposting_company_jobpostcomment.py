@@ -15,16 +15,25 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='jobposting',
             name='company',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='jobs_company', to='baseuser.companyprofile'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name='jobs_company', to='baseuser.companyprofile'),
         ),
         migrations.CreateModel(
             name='JobPostComment',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(
+                    auto_created=True, primary_key=True, serialize=False,
+                    verbose_name='ID')),
                 ('text', models.TextField()),
-                ('date_created', models.DateTimeField(auto_now_add=True, null=True)),
-                ('author', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='baseuser.baseusers')),
-                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='company.jobposting')),
+                ('date_created', models.DateTimeField(auto_now_add=True,
+                                                      null=True)),
+                ('author', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    to='baseuser.baseusers')),
+                ('post', models.ForeignKey(
+                    on_delete=django.db.models.deletion.CASCADE,
+                    related_name='comments', to='company.jobposting')),
             ],
         ),
     ]

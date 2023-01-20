@@ -9,13 +9,15 @@ class CompanySerializer(ModelSerializer):
         fields = '__all__'
 
 
-class JobPostingSerializer(ModelSerializer):
-    class Meta:
-        model = JobPosting
-        exclude = ['company']
-
-
 class JobPostCommentSerializer(ModelSerializer):
     class Meta:
         model = JobPostComment
         exclude = ['author']
+
+
+class JobPostingSerializer(ModelSerializer):
+    comments = JobPostCommentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = JobPosting
+        exclude = ['company']
