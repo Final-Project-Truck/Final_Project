@@ -23,7 +23,10 @@ class IsSurveyOwner(permissions.BasePermission):
             return False
 
     def has_object_permission(self, request, view, obj):
-        return obj.survey.creator == request.user.baseuser
+        if request.user.is_staff:
+            return False
+        elif request.user.baseuser:
+            return obj.survey.creator == request.user.baseuser
 
 
 class IsSubmissionOwner(permissions.BasePermission):
@@ -34,7 +37,10 @@ class IsSubmissionOwner(permissions.BasePermission):
             return False
 
     def has_object_permission(self, request, view, obj):
-        return obj.submission.submitter == request.user.baseuser
+        if request.user.is_staff:
+            return False
+        elif request.user.baseuser:
+            return obj.submission.submitter == request.user.baseuser
 
 
 class IsAdminUser(permissions.BasePermission):
