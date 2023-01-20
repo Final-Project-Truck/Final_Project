@@ -118,8 +118,11 @@ class SurveyAPIViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         survey_chosen = self.get_object()
         if request.user.is_staff:
-            self.perform_destroy(survey_chosen)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+            if survey_chosen.creator is None:
+                return Response('Template Survey cannot be deleted')
+            else:
+                self.perform_destroy(survey_chosen)
+                return Response(status=status.HTTP_204_NO_CONTENT)
         elif request.user.baseuser and not survey_chosen.is_active:
             self.perform_destroy(survey_chosen)
             return Response(status=status.HTTP_204_NO_CONTENT)
