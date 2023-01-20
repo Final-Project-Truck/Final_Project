@@ -82,7 +82,7 @@ class SurveyAPIViewSet(ModelViewSet):
                     return Response(SurveySerializer(new_survey).data,
                                     status=201)
         else:
-            return Response('User of type company create a survey')
+            return Response('User of type company can not create a survey')
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
