@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from authentication.permissions import IsOwner, IsSurveyOwner, \
-    IsSubmissionOwner, IsAdminUser
+    IsSubmissionOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
