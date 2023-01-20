@@ -58,5 +58,5 @@ class SubmissionSerializer(ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = ['survey', 'created_at', 'is_complete',
+        fields = ['id', 'survey', 'created_at', 'is_complete',
                   'choice_submission', 'text_submission']

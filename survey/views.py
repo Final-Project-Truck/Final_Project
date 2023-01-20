@@ -3,7 +3,8 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from authentication.permissions import IsOwner, IsSurveyOwner
+from authentication.permissions import IsOwner, IsSurveyOwner, \
+    IsSubmissionOwner, IsAdminUser
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
@@ -15,7 +16,7 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 class SurveyAPIViewSet(ModelViewSet):
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, (IsOwner or IsAdminUser)]
 
     '''
     Create a survey. Set is_active to False.
@@ -256,6 +257,7 @@ class OptionAPIViewSet(ModelViewSet):
 
         survey_question = SurveyQuestion.objects.filter(
             question_id=option.question_id)
+
         question = Question.objects.get(id=option.question_id)
         with transaction.atomic():
             if question.template_question:
@@ -291,7 +293,7 @@ class OptionAPIViewSet(ModelViewSet):
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAuthenticated, IsSurveyOwner]
+    permission_classes = [IsAuthenticated, (IsAdminUser or IsSurveyOwner)]
 
     '''
     Create a submission only if the survey chosen by user is active.
@@ -308,25 +310,30 @@ class SubmissionAPIViewSet(ModelViewSet):
         is_complete = serializer.data['is_complete']
         # submitter = serializer.data['submitter']
 
-        survey_chosen = Survey.objects.get(
-            id=serializer.validated_data['survey'].id)
-        with transaction.atomic():
-            if survey_chosen.is_active:
-                if serializer.data['is_complete']:
-                    return Response(
-                        'Submission cannot be completed during creation, '
-                        'Please uncheck is_complete')
-                else:
-                    Submission.objects.create(
-                        survey_id=survey,
-                        created_at=created,
-                        is_complete=is_complete,
-                        submitter_id=request.user.baseuser.id)
+        survey_chosen = Survey.objects.get(id=survey)
 
-                    return Response(serializer.data, status=201)
+        with transaction.atomic():
+            if survey_chosen.creator.id == request.user.id:
+                if survey_chosen.is_active:
+                    if serializer.data['is_complete']:
+                        return Response(
+                            'Submission cannot be completed during creation, '
+                            'Please uncheck is_complete')
+                    else:
+                        submission = Submission.objects.create(
+                            survey_id=survey,
+                            created_at=created,
+                            is_complete=is_complete,
+                            submitter_id=request.user.id)
+
+                        return Response(SubmissionSerializer(submission).data,
+                                        status=201)
+                else:
+                    return Response(
+                        'Survey is not active, cannot create submission')
             else:
-                return Response(
-                    'Survey is not active, cannot create submission')
+                return Response('Submission cannot be created for other '
+                                'users survey')
 
     def update(self, request, *args, **kwargs):
         choices = False
@@ -346,7 +353,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 else:
                     choices = False
         else:
-            choices = True
+            choices = False
         if answer_text:
             for answer in range(len(answer_text)):
                 if answer_text[answer].comment is not None:
@@ -354,7 +361,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 else:
                     text = False
         else:
-            text = True
+            text = False
 
         if choices and text and serializer.validated_data['survey'].id == \
                 submission_survey.survey_id:
@@ -388,7 +395,7 @@ class SubmissionAPIViewSet(ModelViewSet):
 class AnswerChoiceAPIViewSet(ModelViewSet):
     queryset = AnswerChoice.objects.all()
     serializer_class = AnswerChoiceSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsSubmissionOwner]
 
     '''
     Users will be able to answer only if the submission is created.
@@ -450,7 +457,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
 class AnswerTextAPIViewSet(ModelViewSet):
     queryset = AnswerText.objects.all()
     serializer_class = AnswerTextSerializer
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, IsSubmissionOwner]
 
     '''
         Users will be able to answer only if the submission is created.

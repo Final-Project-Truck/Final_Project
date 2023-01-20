@@ -108,11 +108,10 @@ class TestSurveyAPIViewSet(TestCase):
         self.client = APIClient()
         self.logged_in_user = self.client.login(username='name10',
                                                 password='name10')
-        if self.logged_in_user:
-            test = self.client.get('/api/v1/survey/300/')
-            self.assertEqual(test.status_code, 200)
-            test.data['is_active'] = True
-            self.client.put('/api/v1/survey/300/', test.data)
+        test = self.client.get('/api/v1/survey/300/')
+        self.assertEqual(test.status_code, 200)
+        test.data['is_active'] = True
+        self.client.put('/api/v1/survey/300/', test.data)
 
     def tearDown(self):
         self.client.logout()
@@ -248,11 +247,13 @@ class TestSurveyAPIViewSet(TestCase):
     #     self.tearDown()
     #     self.logged_in_user = self.client.login(username='admin',
     #                                             password='12345')
-    #     response = self.client.get('/api/v1/survey/4/')
-    #     message = self.client.delete('/api/v1/survey/4/', response.data)
-    #     self.assertEqual(message.status_code, 204)
-    #     response = Survey.objects.filter(id=4)
-    #     self.assertEqual(response.exists(), False)
+    #     response = self.client.get('/api/v1/survey/300/')
+    #     self.assertEqual(response.status_code, 200)
+        # message = self.client.delete('/api/v1/survey/4/', response.data)
+        # self.assertEqual(message.status_code, 204)
+        # response = Survey.objects.filter(id=4)
+        # self.assertEqual(response.exists(), False)
+
     """Question Tests"""
     def test_if_user_created_choice_question_is_created(self):
         question = {"prompt": "This is a choice question", "type": "cho",
@@ -274,8 +275,23 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(response.status_code, 201)
 
     def test_if_user_created_submission_fails_when_survey_is_inactive(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        response = self.client.get('/api/v1/survey/301/')
         submission = {"is_complete": False, "survey": 301,
                       "submitter": 2, "created_at": "2022-12-12"}
         response = self.client.post('/api/v1/submissions/', submission)
         self.assertEqual(response.data,
                          'Survey is not active, cannot create submission')
+
+    def test_if_sub_created_for_other_users_survey_returns_error_message(
+            self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        submission = {"is_complete": False, "survey": 300,
+                      "submitter": 2, "created_at": "2022-12-12"}
+        response = self.client.post('/api/v1/submissions/', submission)
+        self.assertEqual(response.data,
+                         'Submission cannot be created for other users survey')
