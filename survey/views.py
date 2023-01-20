@@ -255,13 +255,8 @@ class OptionAPIViewSet(ModelViewSet):
         serializer = self.get_serializer(option, data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        print(option.question)
-        print(option.question_id)
-
         survey_question = SurveyQuestion.objects.filter(
             question_id=option.question_id)
-
-        print(survey_question)
 
         question = Question.objects.get(id=option.question_id)
         with transaction.atomic():
