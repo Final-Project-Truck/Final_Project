@@ -1,9 +1,13 @@
 from django.db import transaction
 from rest_framework.permissions import IsAuthenticated
+from authentication.permissions import IsOwner,IsAdminUser
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from company.models import JobPosting, Company
-from company.serializers import CompanySerializer, JobPostingSerializer
+
+from baseuser.models import CompanyProfile
+from company.models import JobPosting, Company, JobPostComment
+from company.serializers import CompanySerializer, JobPostingSerializer, \
+    JobPostCommentSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
 
 
@@ -81,3 +85,36 @@ class CompanyAPIViewSet(ModelViewSet):
 class JobPostingAPIViewSet(ModelViewSet):
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def create(self, request, *args, **kwargs):
+        serializer = JobPostingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        job_title = serializer.data['job_title']
+        description = serializer.data['description']
+        salary = serializer.data['salary']
+        com_profile = CompanyProfile.objects.filter(base_user=request.user.id)
+
+        if request.user.baseuser.user_type == 'com':
+            with transaction.atomic():
+                job_post = JobPosting.objects.create(
+                    job_title=job_title,
+                    description=description,
+                    salary=salary,
+                    company_id=com_profile.company,
+                )
+        else:
+            return Response('Only companies can post jobs')
+
+
+class JobPostCommentAPIViewSet(ModelViewSet):
+    queryset = JobPostComment.objects.all()
+    serializer_class = JobPostCommentSerializer
+    permission_classes = [IsAuthenticated, (IsOwner or IsAdminUser)]
+
+    # def create(self, request, *args, **kwargs):
+    #     serializer = JobPostCommentSerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #     post = serializer.data['post']
+    #     text = serializer.data['text']
+    #     date_created = serializer.data['date_created']

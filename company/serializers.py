@@ -1,6 +1,6 @@
 from rest_framework.serializers import ModelSerializer
 
-from .models import Company, JobPosting
+from .models import Company, JobPosting, JobPostComment
 
 
 class CompanySerializer(ModelSerializer):
@@ -12,4 +12,10 @@ class CompanySerializer(ModelSerializer):
 class JobPostingSerializer(ModelSerializer):
     class Meta:
         model = JobPosting
-        fields = '__all__'
+        exclude = ['company']
+
+
+class JobPostCommentSerializer(ModelSerializer):
+    class Meta:
+        model = JobPostComment
+        exclude = ['author']
