@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'company',
     'survey',
     'analytics',
-    'django.contrib.auth.password_validation'
+    'django.contrib.auth.password_validation',
+    'authentication',
 ]
 
 MIDDLEWARE = [

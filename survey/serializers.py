@@ -40,7 +40,7 @@ class SurveySerializer(ModelSerializer):
     # user_name = serializers.ReadOnlyField()
     class Meta:
         model = Survey
-        fields = '__all__'
+        exclude = ['creator']
 
 
 class SurveyQuestionSerializer(ModelSerializer):
@@ -58,4 +58,5 @@ class SubmissionSerializer(ModelSerializer):
 
     class Meta:
         model = Submission
-        fields = '__all__'
+        fields = ['id', 'survey', 'created_at', 'is_complete',
+                  'choice_submission', 'text_submission']

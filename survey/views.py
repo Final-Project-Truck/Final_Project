@@ -1,6 +1,10 @@
 from django.db import transaction
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+from authentication.permissions import IsOwner, IsSurveyOwner, \
+    IsSubmissionOwner, IsAdminUser
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
@@ -12,6 +16,7 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 class SurveyAPIViewSet(ModelViewSet):
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
+    permission_classes = [IsAuthenticated, (IsOwner or IsAdminUser)]
 
     '''
     Create a survey. Set is_active to False.
@@ -24,45 +29,60 @@ class SurveyAPIViewSet(ModelViewSet):
         title = serializer.data['title']
         created_at = serializer.data['created_at']
         company = serializer.data['company']
-        creator = serializer.data['creator']
         is_active = serializer.data['is_active']
-        with transaction.atomic():
-            if serializer.data['is_active']:
-                return Response('Survey cannot be activated during creation')
-            else:
-                new_survey = Survey.objects.create(title=title,
-                                                   created_at=created_at,
-                                                   company_id=company,
-                                                   creator_id=creator,
-                                                   is_active=is_active)
-                new_survey.save()
-                """Get Company's template survey"""
-                creating_company = Company.objects.get(
-                    id=new_survey.company_id)
-                template_survey = Survey.objects.get(
-                    company_id=company,
-                    title=creating_company.name)
-                """Get the Questions related to the template survey"""
-                template_questions = SurveyQuestion.objects.filter(
-                    survey_id=template_survey.id)
-                question_ids = []
-                for template_question in template_questions:
-                    question_ids.append(template_question.question_id)
-                template_question_1 = Question.objects.get(id=question_ids[0])
-                template_question_2 = Question.objects.get(id=question_ids[1])
-                template_question_3 = Question.objects.get(id=question_ids[2])
 
-                """insert template survey questions into new created survey"""
-                survey_question_1 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_1)
-                survey_question_1.save()
-                survey_question_2 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_2)
-                survey_question_2.save()
-                survey_question_3 = SurveyQuestion.objects.create(
-                    survey=new_survey, question=template_question_3)
-                survey_question_3.save()
-            return Response(serializer.data, status=201)
+        if request.user.baseuser.user_type == 'per':
+            ''' Check if the user already created a survey for the company'''
+            if Survey.objects.filter(creator_id=request.user.baseuser.id,
+                                     company_id=company):
+                return Response('You cannot create '
+                                'multiple surveys for a company')
+            else:
+                with transaction.atomic():
+                    if serializer.data['is_active']:
+                        return Response(
+                            'Survey cannot be activated during creation')
+                    else:
+                        new_survey = Survey.objects.create(
+                            title=title,
+                            created_at=created_at,
+                            company_id=company,
+                            creator_id=request.user.baseuser.id,
+                            is_active=is_active)
+                        new_survey.save()
+                        """Get Company's template survey"""
+                        Company.objects.get(
+                            id=new_survey.company_id)
+                        template_survey = Survey.objects.get(
+                            company_id=company, creator_id=None)
+                        """Get the Questions related to the template survey"""
+                        template_questions = SurveyQuestion.objects.filter(
+                            survey_id=template_survey.id)
+                        question_ids = []
+                        for template_question in template_questions:
+                            question_ids.append(template_question.question_id)
+                        template_question_1 = Question.objects.get(
+                            id=question_ids[0])
+                        template_question_2 = Question.objects.get(
+                            id=question_ids[1])
+                        template_question_3 = Question.objects.get(
+                            id=question_ids[2])
+
+                        """insert template survey questions
+                         into new created survey"""
+                        survey_question_1 = SurveyQuestion.objects.create(
+                            survey=new_survey, question=template_question_1)
+                        survey_question_1.save()
+                        survey_question_2 = SurveyQuestion.objects.create(
+                            survey=new_survey, question=template_question_2)
+                        survey_question_2.save()
+                        survey_question_3 = SurveyQuestion.objects.create(
+                            survey=new_survey, question=template_question_3)
+                        survey_question_3.save()
+                    return Response(SurveySerializer(new_survey).data,
+                                    status=201)
+        else:
+            return Response('User of type company create a survey')
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
@@ -74,23 +94,43 @@ class SurveyAPIViewSet(ModelViewSet):
 
         survey_submission = Submission.objects.filter(survey_id=survey.id)
 
-        if survey_submission and not serializer.validated_data['is_active']:
-            return Response('Cannot inactivate survey, submission is '
+        if not survey.creator:
+            return Response('Template survey cannot be edited')
+        elif survey_submission and not serializer.validated_data['is_active']:
+            return Response('Cannot inactivate/update survey, submission is '
                             'already created.')
+        elif survey_submission:
+            return Response('Cannot update the survey,submission is already '
+                            'created.')
         else:
             Survey.objects.filter(
                 id=survey.id).update(
                 title=serializer.validated_data['title'],
                 created_at=serializer.validated_data['created_at'],
                 company=serializer.validated_data['company'],
-                creator=serializer.validated_data['creator'],
                 is_active=serializer.validated_data['is_active'])
             return Response('Survey updated', status=201)
+
+    def destroy(self, request, *args, **kwargs):
+        survey_chosen = self.get_object()
+        if not survey_chosen.is_active:
+            self.perform_destroy(survey_chosen)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.user.is_staff:
+            self.perform_destroy(survey_chosen)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response('Survey cannot be deleted while active')
+
+    def perform_destroy(self, survey_chosen):
+        with transaction.atomic():
+            survey_chosen.delete()
 
 
 class QuestionAPIViewSet(ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
         question = self.get_object()
@@ -112,10 +152,29 @@ class QuestionAPIViewSet(ModelViewSet):
                     template_question='f')
                 return Response('Question updated')
 
+    def destroy(self, request, *args, **kwargs):
+        question = self.get_object()
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question.id)
+        with transaction.atomic():
+            if question.template_question:
+                return Response('Cannot delete template questions')
+            elif survey_question:
+                return Response('Question is used in another survey and '
+                                'cannot delete it')
+            else:
+                self.perform_destroy(question)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, question):
+        with transaction.atomic():
+            question.delete()
+
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
     queryset = SurveyQuestion.objects.all()
     serializer_class = SurveyQuestionSerializer
+    permission_classes = [IsAuthenticated, IsSurveyOwner]
 
     '''
     Add questions to the survey, if the survey is not active.
@@ -153,7 +212,8 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
         serializer = self.get_serializer(survey_question, data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        survey_chosen = Survey.objects.get(id=survey_question.survey_id)
+        survey_chosen = Survey.objects.get(id=survey_question.survey_id,
+                                           creator=request.user.id)
 
         if survey_chosen.is_active:
             return Response('Survey is active, cannot update questions')
@@ -166,10 +226,29 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             else:
                 return Response('Edit only the chosen survey')
 
+    def destroy(self, request, *args, **kwargs):
+        survey_question = self.get_object()
+        survey_chosen = Survey.objects.get(
+            id=survey_question.survey_id)
+        question_chosen = Question.objects.get(id=survey_question.question_id)
+        with transaction.atomic():
+            if survey_chosen.is_active:
+                return Response('Cannot delete survey when active')
+            elif question_chosen.template_question:
+                return Response('Cannot delete template question')
+            else:
+                self.perform_destroy(survey_question)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, survey_question):
+        with transaction.atomic():
+            survey_question.delete()
+
 
 class OptionAPIViewSet(ModelViewSet):
     queryset = Option.objects.all()
     serializer_class = OptionSerializer
+    permission_classes = [IsAuthenticated]
 
     def update(self, request, *args, **kwargs):
         option = self.get_object()
@@ -178,6 +257,7 @@ class OptionAPIViewSet(ModelViewSet):
 
         survey_question = SurveyQuestion.objects.filter(
             question_id=option.question_id)
+
         question = Question.objects.get(id=option.question_id)
         with transaction.atomic():
             if question.template_question:
@@ -191,10 +271,29 @@ class OptionAPIViewSet(ModelViewSet):
                     question_id=serializer.validated_data['question'])
                 return Response('Options updated')
 
+    def destroy(self, request, *args, **kwargs):
+        option = self.get_object()
+        survey_option = SurveyQuestion.objects.filter(
+            question_id=option.question.id)
+        with transaction.atomic():
+            if option.template_question:
+                return Response('Cannot delete template options')
+            elif survey_option:
+                return Response('Option is used in another survey and '
+                                'cannot delete it')
+            else:
+                self.perform_destroy(option)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def perform_destroy(self, option):
+        with transaction.atomic():
+            option.delete()
+
 
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
+    permission_classes = [IsAuthenticated, (IsAdminUser or IsSurveyOwner)]
 
     '''
     Create a submission only if the survey chosen by user is active.
@@ -209,26 +308,32 @@ class SubmissionAPIViewSet(ModelViewSet):
         survey = serializer.data['survey']
         created = serializer.data['created_at']
         is_complete = serializer.data['is_complete']
-        submitter = serializer.data['submitter']
+        # submitter = serializer.data['submitter']
 
-        survey_chosen = Survey.objects.get(
-            id=serializer.validated_data['survey'].id)
+        survey_chosen = Survey.objects.get(id=survey)
+
         with transaction.atomic():
-            if survey_chosen.is_active:
-                if serializer.data['is_complete']:
-                    return Response(
-                        'Submission cannot be completed during creation, '
-                        'Please uncheck is_complete')
-                else:
-                    Submission.objects.create(survey_id=survey,
-                                              created_at=created,
-                                              is_complete=is_complete,
-                                              submitter_id=submitter)
+            if survey_chosen.creator.id == request.user.id:
+                if survey_chosen.is_active:
+                    if serializer.data['is_complete']:
+                        return Response(
+                            'Submission cannot be completed during creation, '
+                            'Please uncheck is_complete')
+                    else:
+                        submission = Submission.objects.create(
+                            survey_id=survey,
+                            created_at=created,
+                            is_complete=is_complete,
+                            submitter_id=request.user.id)
 
-                    return Response(serializer.data, status=201)
+                        return Response(SubmissionSerializer(submission).data,
+                                        status=201)
+                else:
+                    return Response(
+                        'Survey is not active, cannot create submission')
             else:
-                return Response(
-                    'Survey is not active, cannot create submission')
+                return Response('Submission cannot be created for other '
+                                'users survey')
 
     def update(self, request, *args, **kwargs):
         choices = False
@@ -248,7 +353,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 else:
                     choices = False
         else:
-            choices = True
+            choices = False
         if answer_text:
             for answer in range(len(answer_text)):
                 if answer_text[answer].comment is not None:
@@ -256,7 +361,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 else:
                     text = False
         else:
-            text = True
+            text = False
 
         if choices and text and serializer.validated_data['survey'].id == \
                 submission_survey.survey_id:
@@ -264,16 +369,33 @@ class SubmissionAPIViewSet(ModelViewSet):
                 survey_id=serializer.validated_data['survey'],
                 created_at=serializer.validated_data['created_at'],
                 is_complete=serializer.validated_data['is_complete'],
-                submitter_id=serializer.validated_data['submitter'])
+                submitter_id=request.user.baseuser.id)
             return Response('Survey updated')
         else:
             return Response(
                 'Complete the survey to submit it / Invalid submission')
 
+    def destroy(self, request, *args, **kwargs):
+        submission_survey = self.get_object()
+        if not submission_survey.is_complete:
+            self.perform_destroy(submission_survey)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.user and request.user.is_staff:
+            self.perform_destroy(submission_survey)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response('Only authorized user can delete completed '
+                            'submission')
+
+    def perform_destroy(self, survey_chosen):
+        with transaction.atomic():
+            survey_chosen.delete()
+
 
 class AnswerChoiceAPIViewSet(ModelViewSet):
     queryset = AnswerChoice.objects.all()
     serializer_class = AnswerChoiceSerializer
+    permission_classes = [IsAuthenticated, IsSubmissionOwner]
 
     '''
     Users will be able to answer only if the submission is created.
@@ -335,6 +457,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
 class AnswerTextAPIViewSet(ModelViewSet):
     queryset = AnswerText.objects.all()
     serializer_class = AnswerTextSerializer
+    permission_classes = [IsAuthenticated, IsSubmissionOwner]
 
     '''
         Users will be able to answer only if the submission is created.

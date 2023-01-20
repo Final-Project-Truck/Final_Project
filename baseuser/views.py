@@ -198,7 +198,7 @@ class UserProfileAPIViewSet(ModelViewSet):
 
         base_user = serializer.data['base_user']
         current_company = serializer.data['current_company']
-        picture = serializer.data['picture']
+        # picture = serializer.data['picture']
         about = serializer.data['about']
 
         user_reference = BaseUsers.objects.get(
@@ -209,10 +209,16 @@ class UserProfileAPIViewSet(ModelViewSet):
                     'A Company cannot create a User Profile'
                 )
             else:
-                UserProfile.objects.create(base_user_id=base_user,
-                                           current_company_id=current_company,
-                                           picture=picture, about=about)
+                user_profile = UserProfile.objects.create(
+                    base_user_id=base_user,
+                    current_company_id=current_company,
+                    about=about)
+                # serializer.validated_data['id'] = user_profile.id
+                serializer.data['picture'] = user_profile.picture.path
+                # serializer.save()
                 return Response(serializer.data, status=201)
+                # return Response(UserProfileSerializer(profile).data,
+                #                 status=201)
 
 
 class CompanyProfileAPIViewSet(ModelViewSet):
