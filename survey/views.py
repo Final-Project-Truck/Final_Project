@@ -16,7 +16,7 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 class SurveyAPIViewSet(ModelViewSet):
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
-    permission_classes = [IsAuthenticated, (IsOwner or IsAdminUser)]
+    permission_classes = [IsAuthenticated, IsOwner]
 
     '''
     Create a survey. Set is_active to False.
@@ -31,7 +31,9 @@ class SurveyAPIViewSet(ModelViewSet):
         company = serializer.data['company']
         is_active = serializer.data['is_active']
 
-        if request.user.baseuser.user_type == 'per':
+        if request.user.is_staff:
+            return Response('Admin cannot create a survey')
+        elif request.user.baseuser.user_type == 'per':
             ''' Check if the user already created a survey for the company'''
             if Survey.objects.filter(creator_id=request.user.baseuser.id,
                                      company_id=company):
@@ -94,7 +96,9 @@ class SurveyAPIViewSet(ModelViewSet):
 
         survey_submission = Submission.objects.filter(survey_id=survey.id)
 
-        if not survey.creator:
+        if request.user.is_staff:
+            return Response('Admin cannot update the survey')
+        elif not survey.creator:
             return Response('Template survey cannot be edited')
         elif survey_submission and not serializer.validated_data['is_active']:
             return Response('Cannot inactivate/update survey, submission is '
@@ -113,10 +117,10 @@ class SurveyAPIViewSet(ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         survey_chosen = self.get_object()
-        if not survey_chosen.is_active:
+        if request.user.is_staff:
             self.perform_destroy(survey_chosen)
             return Response(status=status.HTTP_204_NO_CONTENT)
-        elif request.user.is_staff:
+        elif request.user.baseuser and not survey_chosen.is_active:
             self.perform_destroy(survey_chosen)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
@@ -293,7 +297,7 @@ class OptionAPIViewSet(ModelViewSet):
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAuthenticated, (IsAdminUser or IsSurveyOwner)]
+    permission_classes = [IsAuthenticated, IsSurveyOwner]
 
     '''
     Create a submission only if the survey chosen by user is active.

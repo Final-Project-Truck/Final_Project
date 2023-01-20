@@ -243,16 +243,27 @@ class TestSurveyAPIViewSet(TestCase):
         response = Survey.objects.filter(id=300)
         self.assertEqual(response.exists(), True)
 
-    # def test_if_django_admin_can_delete_active_survey(self):
-    #     self.tearDown()
-    #     self.logged_in_user = self.client.login(username='admin',
-    #                                             password='12345')
-    #     response = self.client.get('/api/v1/survey/300/')
-    #     self.assertEqual(response.status_code, 200)
-        # message = self.client.delete('/api/v1/survey/4/', response.data)
-        # self.assertEqual(message.status_code, 204)
-        # response = Survey.objects.filter(id=4)
-        # self.assertEqual(response.exists(), False)
+    """Admin tests"""
+    def test_if_admin_can_create_survey(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='admin',
+                                                password='12345')
+        new_survey = {"title": "'Survey 2'", "is_active": False,
+                      "creator": 10, "company": 502, "created_at":
+                          "2022-12-12"}
+        response = self.client.post('/api/v1/survey/', new_survey)
+        self.assertEqual(response.data, 'Admin cannot create a survey')
+
+    def test_if_django_admin_can_delete_active_survey(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='admin',
+                                                password='12345')
+        response = self.client.get('/api/v1/survey/300/')
+        self.assertEqual(response.status_code, 200)
+        message = self.client.delete('/api/v1/survey/300/', response.data)
+        self.assertEqual(message.status_code, 204)
+        response = Survey.objects.filter(id=300)
+        self.assertEqual(response.exists(), False)
 
     """Question Tests"""
     def test_if_user_created_choice_question_is_created(self):
