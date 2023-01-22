@@ -27,7 +27,7 @@ class SurveyAPIViewSet(ModelViewSet):
         serializer = SurveySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         title = serializer.data['title']
-        created_at = serializer.data['created_at']
+        # created_at = serializer.data['created_at']
         company = serializer.data['company']
         is_active = serializer.data['is_active']
 
@@ -47,7 +47,7 @@ class SurveyAPIViewSet(ModelViewSet):
                     else:
                         new_survey = Survey.objects.create(
                             title=title,
-                            created_at=created_at,
+                            # created_at=created_at,
                             company_id=company,
                             creator_id=request.user.baseuser.id,
                             is_active=is_active)
@@ -110,7 +110,7 @@ class SurveyAPIViewSet(ModelViewSet):
             Survey.objects.filter(
                 id=survey.id).update(
                 title=serializer.validated_data['title'],
-                created_at=serializer.validated_data['created_at'],
+                # created_at=serializer.validated_data['created_at'],
                 company=serializer.validated_data['company'],
                 is_active=serializer.validated_data['is_active'])
             return Response('Survey updated', status=201)
@@ -313,7 +313,7 @@ class SubmissionAPIViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         survey = serializer.data['survey']
-        created = serializer.data['created_at']
+        # created = serializer.data['created_at']
         is_complete = serializer.data['is_complete']
         # submitter = serializer.data['submitter']
 
@@ -329,7 +329,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                     else:
                         submission = Submission.objects.create(
                             survey_id=survey,
-                            created_at=created,
+                            # created_at=created,
                             is_complete=is_complete,
                             submitter_id=request.user.id)
 
@@ -374,7 +374,7 @@ class SubmissionAPIViewSet(ModelViewSet):
                 submission_survey.survey_id:
             Submission.objects.filter(id=submission_survey.id).update(
                 survey_id=serializer.validated_data['survey'],
-                created_at=serializer.validated_data['created_at'],
+                # created_at=serializer.validated_data['created_at'],
                 is_complete=serializer.validated_data['is_complete'],
                 submitter_id=request.user.baseuser.id)
             return Response('Survey updated')
