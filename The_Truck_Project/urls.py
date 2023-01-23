@@ -23,7 +23,7 @@ from drf_yasg import openapi
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutPage, home
-from company.views import CompanyAPIViewSet
+from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
@@ -47,7 +47,8 @@ router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
 router.register(r'user-profile', UserProfileAPIViewSet)
 router.register(r'company-profile', CompanyProfileAPIViewSet)
-router.register(r'jobposting', JobPostingAPIViewSet)
+router.register(r'job_posting', JobPostingAPIViewSet)
+router.register(r'job_post_comment', JobPostCommentAPIViewSet)
 router.register(r'companies', CompanyAPIViewSet)
 router.register(r'survey', SurveyAPIViewSet)
 router.register(r'questions', QuestionAPIViewSet)
