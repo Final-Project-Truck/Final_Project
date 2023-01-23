@@ -1,6 +1,6 @@
-import matplotlib
-import matplotlib.pyplot as plt
-import numpy as np
+# import matplotlib
+# import matplotlib.pyplot as plt
+# import numpy as np
 
 from django.db import transaction
 from rest_framework import status
@@ -88,7 +88,7 @@ class SurveyAPIViewSet(ModelViewSet):
                             survey=new_survey, question=template_question_3)
                         survey_question_3.save()
 
-                       # self.generate_report()
+                        # self.generate_report()
                     return Response(SurveySerializer(new_survey).data,
                                     status=201)
         else:
@@ -403,28 +403,28 @@ class SubmissionAPIViewSet(ModelViewSet):
                 is_complete=serializer.validated_data['is_complete'],
                 submitter_id=request.user.baseuser.id)
 
-            ''' Generate report on submission of survey'''
-            #if serializer.validated_data['is_complete']:
-             #   self.generate_report()
+            # ''' Generate report on submission of survey'''
+            # if serializer.validated_data['is_complete']:
+            #     self.generate_report()
 
             return Response('Survey updated')
         else:
             return Response(
                 'Complete the survey to submit it / Invalid submission')
 
-    def generate_report(self):
-        matplotlib.use('Agg')
-        template_questions = Question.objects.filter(template_question=True)
-        q1 = template_questions[0]
-        q2 = template_questions[1]
-        q3 = template_questions[2]
-        x = np.array(q1, q2, q3)
-        y = np.array([35, 25, 25, 15])
-
-        plt.pie(y)
-        plt.savefig('chart2.png')
-
-        return 1
+    # def generate_report(self):
+    #     matplotlib.use('Agg')
+    #     template_questions = Question.objects.filter(template_question=True)
+    #     q1 = template_questions[0]
+    #     q2 = template_questions[1]
+    #     q3 = template_questions[2]
+    #     x = np.array(q1, q2, q3)
+    #     y = np.array([35, 25, 25, 15])
+    #
+    #     plt.pie(y)
+    #     plt.savefig('chart2.png')
+    #
+    #     return 1
 
     def destroy(self, request, *args, **kwargs):
         submission_survey = self.get_object()

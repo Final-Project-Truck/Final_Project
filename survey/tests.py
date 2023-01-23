@@ -110,15 +110,15 @@ class TestSurveyAPIViewSet(TestCase):
             question=cls.template_question_3)
 
         cls.surveyquestion_1 = SurveyQuestion.objects.create(
-            id=704, survey=cls.template_survey_2, \
+            id=704, survey=cls.template_survey_2,
             question=cls.template_question_1)
 
         cls.surveyquestion_2 = SurveyQuestion.objects.create(
-            id=705, survey=cls.template_survey_2, \
+            id=705, survey=cls.template_survey_2,
             question=cls.template_question_2)
 
         cls.surveyquestion_3 = SurveyQuestion.objects.create(
-            id=706, survey=cls.template_survey_2, \
+            id=706, survey=cls.template_survey_2,
             question=cls.template_question_3)
 
     def setUp(self):
@@ -229,7 +229,7 @@ class TestSurveyAPIViewSet(TestCase):
 
     def test_if_question_can_be_added_after_survey_is_active(self):
         response = self.client.get('/api/v1/survey/300/')
-        new_qsn = {'survey':300, 'question':604}
+        new_qsn = {'survey': 300, 'question': 604}
         response = self.client.post('/api/v1/survey_questions/', new_qsn)
         self.assertEqual(response.data,
                          'Survey is active, cannot add questions')
@@ -239,7 +239,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
         response = self.client.get('/api/v1/survey/301/')
-        new_qsn = {'survey':301, 'question':604}
+        new_qsn = {'survey': 301, 'question': 604}
         response = self.client.post('/api/v1/survey_questions/', new_qsn)
         self.assertEqual(response.status_code, 201)
 
@@ -247,8 +247,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
-        #response = self.client.get('/api/v1/survey/301/')
-        new_qsn = {'survey':301, 'question':604}
+        new_qsn = {'survey': 301, 'question': 604}
         self.client.post('/api/v1/survey_questions/', new_qsn)
         duplicate_post = self.client.post('/api/v1/survey_questions/', new_qsn)
         self.assertEqual(duplicate_post.data,
@@ -258,20 +257,20 @@ class TestSurveyAPIViewSet(TestCase):
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
-        new_qsn = {'id':15, 'survey': 301, 'question': 604}
+        new_qsn = {'id': 15, 'survey': 301, 'question': 604}
         self.client.post('/api/v1/survey_questions/', new_qsn)
-        #print(self.client.get('/api/v1/survey_questions/').data)
         survey_qsn = self.client.get('/api/v1/survey_questions/15/')
-        survey_qsn.data['survey']=300
-        update_post = self.client.put('/api/v1/survey_questions/15/',
-                                     survey_qsn.data)
-        self.assertEqual(update_post.data, 'Edit only questions for chosen '
-                                        'survey')
+        survey_qsn.data['survey'] = 300
+        update_post = self.client.put(
+            '/api/v1/survey_questions/15/', survey_qsn.data)
+        self.assertEqual(
+            update_post.data, 'Edit only questions for chosen survey')
 
     def test_if_template_survey_qsn_can_be_deleted_from_survey(self):
-         response = self.client.delete('/api/v1/survey_questions/701/')
-         self.assertEqual(response.data['detail'],
-                          'You do not have permission to perform this action.')
+        response = self.client.delete('/api/v1/survey_questions/701/')
+        self.assertEqual(
+            response.data['detail'],
+            'You do not have permission to perform this action.')
     # def test_if_survey_qsn_can_be_deleted_when_survey_is_active(self):
     #     response_1 = self.client.get('/api/v1/survey/300/')
     #     response_1.data['is_active']=False
@@ -365,7 +364,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='admin',
                                                 password='12345')
         response = self.client.get('/api/v1/survey/300/')
-        response.data['is_active']= False
+        response.data['is_active'] = False
         updated_response = self.client.put('/api/v1/survey/300/',
                                            response.data)
         self.assertEqual(updated_response.data, 'Admin cannot update a survey')
@@ -374,11 +373,10 @@ class TestSurveyAPIViewSet(TestCase):
         self.tearDown()
         self.logged_in_user = self.client.login(username='admin',
                                                 password='12345')
-        response = self.client.get('/api/v1/survey/200/')
+        self.client.get('/api/v1/survey/200/')
         delete_response = self.client.delete('/api/v1/survey/200/')
         self.assertEqual(delete_response.data,
                          'Template Survey cannot be deleted')
-
 
     """Question Tests"""
     def test_if_user_created_choice_question_is_created(self):
