@@ -5,6 +5,8 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 from baseuser.models import BaseUsers
 from company.models import Company
+from PIL import Image
+import tempfile
 
 
 class TestBaseUsersAPIViewSet(TestCase):
@@ -47,6 +49,13 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def setUp(self):
         self.client = APIClient()
+        super().setUp()
+        self.tmp_file = tempfile.NamedTemporaryFile(suffix='.jpg')
+        image = Image.new('RGB', (100, 100))
+        image.save(self.tmp_file.name)
+        self.params = {
+            'photo': self.tmp_file
+        }
 
     @classmethod
     def tearDownClass(cls):
@@ -109,17 +118,40 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.assertEqual(response.exists(), False)
 
     """User Profile Tests"""
-    # def test_if_person_can_create_a_user_profile(self):
-    #     data = {"base_user": 1, "current_company": 1, "past_companies": [],
-    #             "picture": "picture.jpg", "about": "text"}
-    #     response = self.client.post('/api/v1/user-profile/', data)
-    #     self.assertEqual(response.status_code, 201)
+
+    def test_if_person_can_create_a_user_profile(self):
+        # log in as a person user
+        # self.client.login(username='person',
+        #                   password='name1')
+        data = {"base_user": 100, "current_company": 500,
+                "past_companies": [],
+                "about": "text"}
+        data.update(self.params)
+        self.client.login(username='person',
+                          password='name1')
+
+        response = self.client.post('/api/v1/user-profile/', data=data,
+                                    format='multipart')
+        self.assertIn('picture', response.data),
+        self.assertEqual(response.status_code, 201),
+        self.client.logout()
 
     """Company Profile Tests"""
+
     def test_if_company_can_create_a_company_profile(self):
+        # retrieve a company_user
+        company_user = BaseUsers.objects.get(id=101)
+        # log in as a company user
+        self.client.login(username=company_user.username,
+                          password=company_user.password1)
         data = {"base_user": 101, "company": 500,
                 "website": "https://www.google.com/",
                 "number_of_employees": 100,
                 "organization_type": "pub", "revenue": 1000}
         response = self.client.post('/api/v1/company-profile/', data)
         self.assertEqual(response.status_code, 201)
+        self.client.logout()
+
+    # if using the signal to create the profile automatically
+    def test_signal(self):
+        pass  # todo
