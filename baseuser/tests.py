@@ -118,11 +118,7 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.assertEqual(response.exists(), False)
 
     """User Profile Tests"""
-
     def test_if_person_can_create_a_user_profile(self):
-        # log in as a person user
-        # self.client.login(username='person',
-        #                   password='name1')
         data = {"base_user": 100, "current_company": 500,
                 "past_companies": [],
                 "about": "text"}
@@ -137,13 +133,7 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.client.logout()
 
     """Company Profile Tests"""
-
     def test_if_company_can_create_a_company_profile(self):
-        # retrieve a company_user
-        company_user = BaseUsers.objects.get(id=101)
-        # log in as a company user
-        self.client.login(username=company_user.username,
-                          password=company_user.password1)
         data = {"base_user": 101, "company": 500,
                 "website": "https://www.google.com/",
                 "number_of_employees": 100,
@@ -152,6 +142,4 @@ class TestBaseUsersAPIViewSet(TestCase):
         self.assertEqual(response.status_code, 201)
         self.client.logout()
 
-    # if using the signal to create the profile automatically
-    def test_signal(self):
-        pass  # todo
+
