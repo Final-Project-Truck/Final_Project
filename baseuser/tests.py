@@ -141,5 +141,3 @@ class TestBaseUsersAPIViewSet(TestCase):
         response = self.client.post('/api/v1/company-profile/', data)
         self.assertEqual(response.status_code, 201)
         self.client.logout()
-
-
