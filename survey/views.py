@@ -3,7 +3,7 @@
 # import numpy as np
 
 from django.db import transaction
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -18,6 +18,8 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 
 
 class SurveyAPIViewSet(ModelViewSet):
+    search_fields = ['title', 'company__name',]
+    filter_backends = (filters.SearchFilter,)
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
     permission_classes = [IsAuthenticated, IsOwner]

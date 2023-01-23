@@ -1,5 +1,5 @@
 from django.db import transaction
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsOwner
 from rest_framework.response import Response
@@ -13,6 +13,8 @@ from survey.models import Survey, Question, Option, SurveyQuestion
 
 
 class CompanyAPIViewSet(ModelViewSet):
+    search_fields = ['name', 'location', 'description']
+    filter_backends = (filters.SearchFilter,)
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     permission_classes = [IsAuthenticated]
@@ -135,6 +137,8 @@ class CompanyAPIViewSet(ModelViewSet):
 
 
 class JobPostingAPIViewSet(ModelViewSet):
+    search_fields = ['job_title', 'description', 'company__company__name']
+    filter_backends = (filters.SearchFilter,)
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
     permission_classes = [IsAuthenticated, IsOwner]
@@ -164,6 +168,8 @@ class JobPostingAPIViewSet(ModelViewSet):
 
 
 class JobPostCommentAPIViewSet(ModelViewSet):
+    search_fields = ['text',]
+    filter_backends = (filters.SearchFilter,)
     queryset = JobPostComment.objects.all()
     serializer_class = JobPostCommentSerializer
     permission_classes = [IsAuthenticated]
