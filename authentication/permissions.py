@@ -14,8 +14,10 @@ class IsOwner(permissions.BasePermission):
                 return False
             else:
                 return True
-        elif request.user.baseuser:
+        elif request.user.baseuser.user_type == "per":
             return obj.creator == request.user.baseuser
+        elif request.user.baseuser.user_type == "com":
+            return obj.company.base_user == request.user.baseuser
 
 
 class IsSurveyOwner(permissions.BasePermission):
