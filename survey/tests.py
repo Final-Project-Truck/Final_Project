@@ -78,31 +78,48 @@ class TestSurveyAPIViewSet(TestCase):
             company_id=cls.company.id, created_at='2022-12-12')
 
         cls.template_question_1 = Question.objects.create(
-            prompt="Question 1", type='txt', template_question=True)
+            id=601, prompt="Question 1", type='txt', template_question=True)
 
         cls.template_question_2 = Question.objects.create(
-            prompt="Question 2", type='txt', template_question=True)
+            id=602, prompt="Question 2", type='txt', template_question=True)
 
         cls.template_question_3 = Question.objects.create(
-            prompt="Question 3", type='txt', template_question=True)
+            id=603, prompt="Question 3", type='txt', template_question=True)
+
+        cls.user_question_1 = Question.objects.create(
+            id=604, prompt="Are you satisfied?", type='txt',
+            template_question=False)
+
+        cls.user_question_2 = Question.objects.create(
+            id=605, prompt="Are you satisfied?", type='txt',
+            template_question=False)
+
+        cls.user_survey_question = SurveyQuestion.objects.create(
+            id=900, survey=cls.survey1, question=cls.user_question_2)
 
         cls.surveyquestion1 = SurveyQuestion.objects.create(
-            survey=cls.template_survey, question=cls.template_question_1)
+            id=701, survey=cls.template_survey,
+            question=cls.template_question_1)
 
         cls.surveyquestion2 = SurveyQuestion.objects.create(
-            survey=cls.template_survey, question=cls.template_question_2)
+            id=702, survey=cls.template_survey,
+            question=cls.template_question_2)
 
         cls.surveyquestion3 = SurveyQuestion.objects.create(
-            survey=cls.template_survey, question=cls.template_question_3)
+            id=703, survey=cls.template_survey,
+            question=cls.template_question_3)
 
         cls.surveyquestion_1 = SurveyQuestion.objects.create(
-            survey=cls.template_survey_2, question=cls.template_question_1)
+            id=704, survey=cls.template_survey_2, \
+            question=cls.template_question_1)
 
         cls.surveyquestion_2 = SurveyQuestion.objects.create(
-            survey=cls.template_survey_2, question=cls.template_question_2)
+            id=705, survey=cls.template_survey_2, \
+            question=cls.template_question_2)
 
         cls.surveyquestion_3 = SurveyQuestion.objects.create(
-            survey=cls.template_survey_2, question=cls.template_question_3)
+            id=706, survey=cls.template_survey_2, \
+            question=cls.template_question_3)
 
     def setUp(self):
         self.client = APIClient()
@@ -210,6 +227,76 @@ class TestSurveyAPIViewSet(TestCase):
                                            response.data)
         self.assertEqual(updated_response.data, 'Survey updated')
 
+    def test_if_question_can_be_added_after_survey_is_active(self):
+        response = self.client.get('/api/v1/survey/300/')
+        new_qsn = {'survey':300, 'question':604}
+        response = self.client.post('/api/v1/survey_questions/', new_qsn)
+        self.assertEqual(response.data,
+                         'Survey is active, cannot add questions')
+
+    def test_if_question_can_be_added_if_survey_is_inactive(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        response = self.client.get('/api/v1/survey/301/')
+        new_qsn = {'survey':301, 'question':604}
+        response = self.client.post('/api/v1/survey_questions/', new_qsn)
+        self.assertEqual(response.status_code, 201)
+
+    def test_if_duplicate_question_can_be_added_if_survey_is_inactive(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        #response = self.client.get('/api/v1/survey/301/')
+        new_qsn = {'survey':301, 'question':604}
+        self.client.post('/api/v1/survey_questions/', new_qsn)
+        duplicate_post = self.client.post('/api/v1/survey_questions/', new_qsn)
+        self.assertEqual(duplicate_post.data,
+                         'Chosen Question is already added to the survey')
+
+    def test_if_user_can_update_survey_that_is_not_chosen(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        new_qsn = {'id':15, 'survey': 301, 'question': 604}
+        self.client.post('/api/v1/survey_questions/', new_qsn)
+        #print(self.client.get('/api/v1/survey_questions/').data)
+        survey_qsn = self.client.get('/api/v1/survey_questions/15/')
+        survey_qsn.data['survey']=300
+        update_post = self.client.put('/api/v1/survey_questions/15/',
+                                     survey_qsn.data)
+        self.assertEqual(update_post.data, 'Edit only questions for chosen '
+                                        'survey')
+
+    def test_if_template_survey_qsn_can_be_deleted_from_survey(self):
+         response = self.client.delete('/api/v1/survey_questions/701/')
+         self.assertEqual(response.data['detail'],
+                          'You do not have permission to perform this action.')
+    # def test_if_survey_qsn_can_be_deleted_when_survey_is_active(self):
+    #     response_1 = self.client.get('/api/v1/survey/300/')
+    #     response_1.data['is_active']=False
+    #     self.client.post('/api/v1/survey/300/', response_1.data)
+    #     #new_qsn = {'survey': 301, 'question': 604}
+    #     response_2 = self.client.post(
+    #         '/api/v1/survey_questions/', self.user_question_1)
+    #     print(response_2.data)
+    #     response_1.data['is_active']=True
+    #     self.client.post('/api/v1/survey/300/', response_1.data)
+    #     #self.client.delete()
+    #     #self.assertEqual(response.status_code, 201)
+
+    def test_if_survey_can_be_updated_after_submission_creation(self):
+        submission = {"is_complete": False, "survey": 300,
+                      "submitter": 1, "created_at": "2022-12-12"}
+        self.client.post('/api/v1/submissions/', submission)
+        response = self.client.get('/api/v1/survey/300/')
+        response.data['title'] = 'Awesome'
+        updated_response = self.client.put('/api/v1/survey/300/',
+                                           response.data)
+        self.assertEqual(updated_response.data,
+                         'Cannot update the survey,'
+                         'submission is already created.')
+
     def test_message_when_active_submission_and_user_closes_survey(self):
         submission = {"is_complete": False, "survey": 300,
                       "submitter": 1, "created_at": "2022-12-12"}
@@ -243,6 +330,14 @@ class TestSurveyAPIViewSet(TestCase):
         response = Survey.objects.filter(id=300)
         self.assertEqual(response.exists(), True)
 
+    def test_if_template_survey_can_be_edited(self):
+        response = self.client.get('/api/v1/survey/200/')
+        response.data['title'] = 'Template survey'
+        updated_response = self.client.put('/api/v1/survey/200/',
+                                           response.data)
+        self.assertEqual(updated_response.data['detail'],
+                         'You do not have permission to perform this action.')
+
     """Admin tests"""
     def test_if_admin_can_create_survey(self):
         self.tearDown()
@@ -265,6 +360,26 @@ class TestSurveyAPIViewSet(TestCase):
         response = Survey.objects.filter(id=300)
         self.assertEqual(response.exists(), False)
 
+    def test_if_admin_can_update_survey(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='admin',
+                                                password='12345')
+        response = self.client.get('/api/v1/survey/300/')
+        response.data['is_active']= False
+        updated_response = self.client.put('/api/v1/survey/300/',
+                                           response.data)
+        self.assertEqual(updated_response.data, 'Admin cannot update a survey')
+
+    def test_if_admin_can_delete_template_survey(self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='admin',
+                                                password='12345')
+        response = self.client.get('/api/v1/survey/200/')
+        delete_response = self.client.delete('/api/v1/survey/200/')
+        self.assertEqual(delete_response.data,
+                         'Template Survey cannot be deleted')
+
+
     """Question Tests"""
     def test_if_user_created_choice_question_is_created(self):
         question = {"prompt": "This is a choice question", "type": "cho",
@@ -284,6 +399,14 @@ class TestSurveyAPIViewSet(TestCase):
                       "submitter": 1, "created_at": "2022-12-12"}
         response = self.client.post('/api/v1/submissions/', submission)
         self.assertEqual(response.status_code, 201)
+
+    # def test_if_user_creates_submission_with_is_complete_returns_error(self):
+    #     submission = {"is_complete": True, "survey": 300,
+    #                   "submitter": 1, "created_at": "2022-12-12"}
+    #     response = self.client.post('/api/v1/submissions/', submission)
+    #     self.assertEqual(response.status_code,
+    #                      'Submission cannot be completed during creation, '
+    #                         'Please uncheck is_complete')
 
     def test_if_user_created_submission_fails_when_survey_is_inactive(self):
         self.tearDown()
@@ -306,3 +429,14 @@ class TestSurveyAPIViewSet(TestCase):
         response = self.client.post('/api/v1/submissions/', submission)
         self.assertEqual(response.data,
                          'Submission cannot be created for other users survey')
+
+    def test_if_sub_created_for_template_survey_returns_error_message(
+            self):
+        self.tearDown()
+        self.logged_in_user = self.client.login(username='name11',
+                                                password='name11')
+        submission = {"is_complete": False, "survey": 200,
+                      "submitter": 2, "created_at": "2022-12-12"}
+        response = self.client.post('/api/v1/submissions/', submission)
+        self.assertEqual(response.data,
+                         'Submission cannot be created for template survey')
