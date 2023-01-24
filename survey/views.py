@@ -1,8 +1,9 @@
-# import matplotlib
-# import matplotlib.pyplot as plt
-# import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
 
 from django.db import transaction
+from django.db.models import Sum
 from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -90,26 +91,40 @@ class SurveyAPIViewSet(ModelViewSet):
                             survey=new_survey, question=template_question_3)
                         survey_question_3.save()
 
-                        # self.generate_report()
+                        self.generate_report()
                     return Response(SurveySerializer(new_survey).data,
                                     status=201)
         else:
             return Response('User of type company can not create a survey')
 
-    # def generate_report(self):
-    #     matplotlib.use('Agg')
-    #     template_questions = Question.objects.filter(
-    #         template_question=True)
-    #     q1 = str(template_questions[0])
-    #     q2 = str(template_questions[1])
-    #     q3 = str(template_questions[2])
-    #     x = np.array([q1, q2, q3])
-    #     y = np.array([35, 25, 25])
-    #
-    #     plt.plot(x, y)
-    #     plt.savefig('chart2.png')
-    #
-    #     return 1
+    def generate_report(self):
+        matplotlib.use('Agg')
+        #select company_id from survey_survey where creator_id is not null;
+        #select company_id, count(*) from survey_survey where creator_id is not null group by company_id;
+
+        template_questions = Question.objects.filter(
+            template_question=True)
+        companies = Company.objects.all().order_by('id')
+        #surveys = Survey.objects.filter(creator_id=not None).group_by(
+         #   'company_id')
+        surveys = Survey.objects.values\
+            ('company_id').exclude(creator_id=None).annotate(
+            count=Sum("creator_id")).order_by("company_id")
+        print(companies)
+        print(surveys)
+        q1 = str(template_questions[0])
+        q2 = str(template_questions[1])
+        q3 = str(template_questions[2])
+        x = [0]
+        for i, j in range(len(companies)):
+            x[j] = np.array([str(companies[i])])
+        #x = np.array([q1, q2, q3])
+            y = np.array([5])
+
+            plt.plot(x[j], y)
+        plt.savefig('chart2.png')
+
+        return 1
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
