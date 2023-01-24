@@ -1,4 +1,3 @@
-from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 
@@ -17,7 +16,6 @@ class BaseUsersSerializer(ModelSerializer):
 
 
 class UserProfileSerializer(ModelSerializer):
-
 
     class Meta:
         model = UserProfile
