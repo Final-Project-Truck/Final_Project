@@ -10,4 +10,3 @@ pillow==9.3.0
 flake8==6.0.0
 python-decouple==3.7
 drf-yasg==1.21.4
-django-widget-tweaks==1.4.12
