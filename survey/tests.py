@@ -426,7 +426,8 @@ class TestSurveyAPIViewSet(TestCase):
     #                   "submitter": 2, "created_at": "2022-12-12"}
     #     response = self.client.post('/api/v1/submissions/', submission)
     #     self.assertEqual(response.data,
-    #                      'Submission cannot be created for other users survey')
+    #                      'Submission cannot be
+    #                      created for other users survey')
 
     # def test_if_sub_created_for_template_survey_returns_error_message(
     #         self):

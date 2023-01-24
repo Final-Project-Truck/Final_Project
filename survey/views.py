@@ -347,7 +347,7 @@ class SubmissionAPIViewSet(ModelViewSet):
             # if not survey_chosen.creator:
             #     return Response('Submission cannot be created for template '
             #                     'survey')
-            #elif survey_chosen.creator.id == request.user.id:
+            # elif survey_chosen.creator.id == request.user.id:
             if survey_chosen.is_active:
                 if serializer.data['is_complete']:
                     return Response(
