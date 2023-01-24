@@ -188,42 +188,6 @@ def home(request):
     return render(request, 'home.html')
 
 
-# todo check this version and why it is not passing
-# class UserProfileAPIViewSet(ModelViewSet):
-#     queryset = UserProfile.objects.all()
-#     serializer_class = UserProfileSerializer
-#
-#     def create(self, request, *args, **kwargs): # todo check whether
-#         # overriding the methods is still necessary after creating the
-#         # signals and the permission classes (when trying to create a
-#         # profile through an Api call f.g
-#         if request.user.baseuser.user_type == 'com':
-#             return Response(
-#                 'A Company cannot create a User Profile' # todo this case is
-#                 # not
-#                 # captured in the test cases
-#             )
-#         serializer = self.get_serializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         serializer.validated_data["base_user"] = request.user.id
-#         self.perform_create(serializer)
-#         headers = self.get_success_headers(serializer.data)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED,
-#                         headers=headers)
-#
-#
-# def update(self, request, *args, **kwargs):
-#         user_profile = self.get_object()
-#         if request.user.baseuser.user_type == 'com':
-#             return Response(
-#                 'A Company cannot update a User Profile'
-#             )
-#         serializer = self.get_serializer(user_profile, data=request.data)
-#         if serializer.is_valid(raise_exception=True):
-#             serializer.save()
-#             return Response(serializer.data)
-
-
 class UserProfileAPIViewSet(ModelViewSet):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
@@ -231,86 +195,44 @@ class UserProfileAPIViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = UserProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        base_user = serializer.data['base_user']
-        current_company = serializer.data['current_company']
-        picture = serializer.data['picture']
-        about = serializer.data['about']
-
         user_reference = BaseUsers.objects.get(
             id=serializer.validated_data['base_user'].id)
-        with transaction.atomic():  # todo check what is the use of the
-            # transaction, I think it can be deleted
-            if user_reference.user_type == 'com':
-                return Response(
-                    'A Company cannot create a User Profile'
-                )
-            else:
-                UserProfile.objects.create(
-                    base_user_id=base_user,
-                    current_company_id=current_company,
-                    picture=picture,
-                    about=about)
-                return Response(serializer.data, status=201)
 
-# todo this version is working and passing the test when the user is logged in
+        if user_reference.user_type == 'com':
+            return Response(
+                'A Company cannot create a User Profile'
+            )
+        else:
+            self.perform_create(serializer)
+            return Response(serializer.data, status=201)
 
 
 class CompanyProfileAPIViewSet(ModelViewSet):
     queryset = CompanyProfile.objects.all()
     serializer_class = CompanyProfileSerializer
 
-    def create(self, request, *args, **kwargs):  # todo check whether
-        # overriding the methods is still necessary after creating the
-        # signals and the permission classes (when trying to create a
-        # profile through an Api call f.g
-        if request.user.baseuser.user_type == 'per':
+    def create(self, request, *args, **kwargs):
+        serializer = CompanyProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        base_user = serializer.data['base_user']
+        company = serializer.data['company']
+        website = serializer.data['website']
+        number_of_employees = serializer.data['number_of_employees']
+        organization_type = serializer.data['organization_type']
+        revenue = serializer.data['revenue']
+
+        user_reference = BaseUsers.objects.get(
+            id=serializer.validated_data['base_user'].id)
+
+        if user_reference.user_type == 'per':
             return Response(
-                'A Person cannot create a User Profile'
+                'A Person cannot create a Company Profile'
             )
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
+        else:
+            CompanyProfile.objects.create(
+                base_user_id=base_user, company_id=company,
+                website=website,
+                number_of_employees=number_of_employees,
+                organization_type=organization_type,
+                revenue=revenue)
             return Response(serializer.data, status=201)
-
-    def update(self, request, *args, **kwargs):
-        user_profile = self.get_object()
-        if request.user.baseuser.user_type == 'per':
-            return Response(
-                'A Person cannot update a User Profile'
-            )
-        serializer = self.get_serializer(user_profile, data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data)
-
-
-# class CompanyProfileAPIViewSet(ModelViewSet):
-#     queryset = CompanyProfile.objects.all()
-#     serializer_class = CompanyProfileSerializer
-#
-#     def create(self, request, *args, **kwargs):
-#         serializer = CompanyProfileSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         base_user = serializer.data['base_user']
-#         company = serializer.data['company']
-#         website = serializer.data['website']
-#         number_of_employees = serializer.data['number_of_employees']
-#         organization_type = serializer.data['organization_type']
-#         revenue = serializer.data['revenue']
-#
-#         user_reference = BaseUsers.objects.get(
-#             id=serializer.validated_data['base_user'].id)
-#         with transaction.atomic():
-#             if user_reference.user_type == 'per':
-#                 return Response(
-#                     'A Person cannot create a Company Profile'
-#                 )
-#             else:
-#                 CompanyProfile.objects.create(
-#                     base_user_id=base_user, company_id=company,
-#                     website=website,
-#                     number_of_employees=number_of_employees,
-#                     organization_type=organization_type,
-#                     revenue=revenue)
-#                 return Response(serializer.data, status=201)

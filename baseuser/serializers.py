@@ -17,8 +17,7 @@ class BaseUsersSerializer(ModelSerializer):
 
 
 class UserProfileSerializer(ModelSerializer):
-    picture = serializers.ImageField(
-        default="http://127.0.0.1:8001/media/profile_images/default.jpg")
+
 
     class Meta:
         model = UserProfile

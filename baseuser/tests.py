@@ -1,12 +1,14 @@
 import datetime
+import tempfile
+
+from PIL import Image
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from django.test import TestCase
 from rest_framework.test import APIClient
+
 from baseuser.models import BaseUsers
 from company.models import Company
-from PIL import Image
-import tempfile
 
 
 class TestBaseUsersAPIViewSet(TestCase):
@@ -54,7 +56,7 @@ class TestBaseUsersAPIViewSet(TestCase):
         image = Image.new('RGB', (100, 100))
         image.save(self.tmp_file.name)
         self.params = {
-            'photo': self.tmp_file
+            'picture': self.tmp_file
         }
 
     @classmethod
@@ -121,19 +123,32 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def test_if_person_can_create_a_user_profile(self):
         # log in as a person user
-        # self.client.login(username='person',
-        #                   password='name1')
-        data = {"base_user": 100, "current_company": 500,
-                "past_companies": [],
-                "about": "text"}
-        data.update(self.params)
         self.client.login(username='person',
                           password='name1')
+        data = {"base_user": 100, "current_company": 500,
+                "past_companies": [], "about": "text",
+                'picture': (self.params['picture'])}
 
         response = self.client.post('/api/v1/user-profile/', data=data,
                                     format='multipart')
         self.assertIn('picture', response.data),
         self.assertEqual(response.status_code, 201),
+        self.client.logout()
+
+    def test_if_default_picture_is_assigned_to_user_profile(self):
+        # log in as a person user
+        self.client.login(username='person',
+                          password='name1')
+        data = {"base_user": 100, "current_company": 500,
+                "past_companies": [],
+                "about": "text"}
+
+        response = self.client.post('/api/v1/user-profile/', data=data,
+                                    format='multipart')
+
+        self.assertEqual(response.status_code, 201),
+
+        self.assertIn("picture", response.data)
         self.client.logout()
 
     """Company Profile Tests"""
@@ -151,7 +166,3 @@ class TestBaseUsersAPIViewSet(TestCase):
         response = self.client.post('/api/v1/company-profile/', data)
         self.assertEqual(response.status_code, 201)
         self.client.logout()
-
-    # if using the signal to create the profile automatically
-    def test_signal(self):
-        pass  # todo
