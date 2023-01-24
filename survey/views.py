@@ -344,30 +344,30 @@ class SubmissionAPIViewSet(ModelViewSet):
         survey_chosen = Survey.objects.get(id=survey)
 
         with transaction.atomic():
-            if not survey_chosen.creator:
-                return Response('Submission cannot be created for template '
-                                'survey')
-            elif survey_chosen.creator.id == request.user.id:
-                if survey_chosen.is_active:
-                    if serializer.data['is_complete']:
-                        return Response(
-                            'Submission cannot be completed during creation, '
-                            'Please uncheck is_complete')
-                    else:
-                        submission = Submission.objects.create(
-                            survey_id=survey,
-                            # created_at=created,
-                            is_complete=is_complete,
-                            submitter_id=request.user.id)
-
-                        return Response(SubmissionSerializer(submission).data,
-                                        status=201)
-                else:
+            # if not survey_chosen.creator:
+            #     return Response('Submission cannot be created for template '
+            #                     'survey')
+            # elif survey_chosen.creator.id == request.user.id:
+            if survey_chosen.is_active:
+                if serializer.data['is_complete']:
                     return Response(
-                        'Survey is not active, cannot create submission')
+                        'Submission cannot be completed during creation, '
+                        'Please uncheck is_complete')
+                else:
+                    submission = Submission.objects.create(
+                        survey_id=survey,
+                        # created_at=created,
+                        is_complete=is_complete,
+                        submitter_id=request.user.id)
+
+                    return Response(SubmissionSerializer(submission).data,
+                                    status=201)
             else:
-                return Response('Submission cannot be created for other '
-                                'users survey')
+                return Response(
+                    'Survey is not active, cannot create submission')
+            # else:
+            #     return Response('Submission cannot be created for other '
+            #                     'users survey')
 
     def update(self, request, *args, **kwargs):
         choices = False

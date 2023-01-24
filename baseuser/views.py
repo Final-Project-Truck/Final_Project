@@ -197,30 +197,16 @@ class UserProfileAPIViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = UserProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        base_user = serializer.data['base_user']
-        current_company = serializer.data['current_company']
-        # picture = serializer.data['picture']
-        about = serializer.data['about']
-
         user_reference = BaseUsers.objects.get(
             id=serializer.validated_data['base_user'].id)
-        with transaction.atomic():
-            if user_reference.user_type == 'com':
-                return Response(
-                    'A Company cannot create a User Profile'
-                )
-            else:
-                user_profile = UserProfile.objects.create(
-                    base_user_id=base_user,
-                    current_company_id=current_company,
-                    about=about)
-                # serializer.validated_data['id'] = user_profile.id
-                serializer.data['picture'] = user_profile.picture.path
-                # serializer.save()
-                return Response(serializer.data, status=201)
-                # return Response(UserProfileSerializer(profile).data,
-                #                 status=201)
+
+        if user_reference.user_type == 'com':
+            return Response(
+                'A Company cannot create a User Profile'
+            )
+        else:
+            self.perform_create(serializer)
+            return Response(serializer.data, status=201)
 
 
 class CompanyProfileAPIViewSet(ModelViewSet):
@@ -241,16 +227,16 @@ class CompanyProfileAPIViewSet(ModelViewSet):
 
         user_reference = BaseUsers.objects.get(
             id=serializer.validated_data['base_user'].id)
-        with transaction.atomic():
-            if user_reference.user_type == 'per':
-                return Response(
-                    'A Person cannot create a Company Profile'
-                )
-            else:
-                CompanyProfile.objects.create(
-                    base_user_id=base_user, company_id=company,
-                    website=website,
-                    number_of_employees=number_of_employees,
-                    organization_type=organization_type,
-                    revenue=revenue)
-                return Response(serializer.data, status=201)
+
+        if user_reference.user_type == 'per':
+            return Response(
+                'A Person cannot create a Company Profile'
+            )
+        else:
+            CompanyProfile.objects.create(
+                base_user_id=base_user, company_id=company,
+                website=website,
+                number_of_employees=number_of_employees,
+                organization_type=organization_type,
+                revenue=revenue)
+            return Response(serializer.data, status=201)

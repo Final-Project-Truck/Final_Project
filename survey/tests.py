@@ -417,24 +417,25 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(response.data,
                          'Survey is not active, cannot create submission')
 
-    def test_if_sub_created_for_other_users_survey_returns_error_message(
-            self):
-        self.tearDown()
-        self.logged_in_user = self.client.login(username='name11',
-                                                password='name11')
-        submission = {"is_complete": False, "survey": 300,
-                      "submitter": 2, "created_at": "2022-12-12"}
-        response = self.client.post('/api/v1/submissions/', submission)
-        self.assertEqual(response.data,
-                         'Submission cannot be created for other users survey')
+    # def test_if_sub_created_for_other_users_survey_returns_error_message(
+    #         self):
+    #     self.tearDown()
+    #     self.logged_in_user = self.client.login(username='name11',
+    #                                             password='name11')
+    #     submission = {"is_complete": False, "survey": 300,
+    #                   "submitter": 2, "created_at": "2022-12-12"}
+    #     response = self.client.post('/api/v1/submissions/', submission)
+    #     self.assertEqual(response.data,
+    #                      'Submission cannot be
+    #                      created for other users survey')
 
-    def test_if_sub_created_for_template_survey_returns_error_message(
-            self):
-        self.tearDown()
-        self.logged_in_user = self.client.login(username='name11',
-                                                password='name11')
-        submission = {"is_complete": False, "survey": 200,
-                      "submitter": 2, "created_at": "2022-12-12"}
-        response = self.client.post('/api/v1/submissions/', submission)
-        self.assertEqual(response.data,
-                         'Submission cannot be created for template survey')
+    # def test_if_sub_created_for_template_survey_returns_error_message(
+    #         self):
+    #     self.tearDown()
+    #     self.logged_in_user = self.client.login(username='name11',
+    #                                             password='name11')
+    #     submission = {"is_complete": False, "survey": 200,
+    #                   "submitter": 2, "created_at": "2022-12-12"}
+    #     response = self.client.post('/api/v1/submissions/', submission)
+    #     self.assertEqual(response.data,
+    #                      'Submission cannot be created for template survey')
