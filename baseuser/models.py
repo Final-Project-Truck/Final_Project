@@ -52,3 +52,6 @@ class CompanyProfile(models.Model):
     number_of_employees = models.IntegerField()
     organization_type = models.CharField(max_length=3, choices=company_type)
     revenue = models.IntegerField()
+
+    def __str__(self):
+        return f'{self.company}'

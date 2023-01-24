@@ -76,16 +76,16 @@ class TestCompanyAPIViewSet(TestCase):
 
     def test_if_company_created_returns_201_created(self):
         data = {"name": "'company_name_1'", "location": "company_location",
-                "description": "company_description"}
+                "description": "test_1"}
         response = self.client.post('/api/v1/companies/', data)
         self.assertEqual(response.status_code, 201)
 
     def test_if_survey_is_created_when_company_created_returns_True_if_exists(
             self):
         data = {"name": "'company_name_2'", "location": "company_location",
-                "description": "company_description"}
+                "description": "test_2"}
         self.client.post('/api/v1/companies/', data)
-        output = get_object_or_404(Survey, title="'company_name_2'")
+        output = get_object_or_404(Survey, company=3)
         self.assertNotEqual(output, 404)
 
     def test_get_company_list(self):

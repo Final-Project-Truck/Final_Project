@@ -1,13 +1,20 @@
 from django.db import transaction
+from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
+from authentication.permissions import IsOwner
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from company.models import JobPosting, Company
-from company.serializers import CompanySerializer, JobPostingSerializer
+
+from baseuser.models import CompanyProfile
+from company.models import JobPosting, Company, JobPostComment
+from company.serializers import CompanySerializer, JobPostingSerializer, \
+    JobPostCommentSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
 
 
 class CompanyAPIViewSet(ModelViewSet):
+    search_fields = ['name', 'location', 'description']
+    filter_backends = (filters.SearchFilter,)
     queryset = Company.objects.all()
     serializer_class = CompanySerializer
     permission_classes = [IsAuthenticated]
@@ -22,7 +29,7 @@ class CompanyAPIViewSet(ModelViewSet):
 
             """Create Company Survey"""
             survey = Survey.objects.create(
-                title=company.name, is_active=False, company=company)
+                title="Template Survey", is_active=False, company=company)
 
             """Template Question 1"""
             template_question_1 = Question.objects.create(
@@ -77,7 +84,108 @@ class CompanyAPIViewSet(ModelViewSet):
 
             return Response(CompanySerializer(company).data, status=201)
 
+    def update(self, request, *args, **kwargs):
+        company = self.get_object()
+        serializer = self.get_serializer(company, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if request.user.baseuser.user_type == 'com':
+            com_profile = CompanyProfile.objects.get(
+                base_user_id=request.user.baseuser.id)
+            if com_profile.company.id == company.id:
+                Company.objects.filter(
+                    id=company.id).update(
+                    name=serializer.validated_data['name'],
+                    location=serializer.validated_data['location'],
+                    description=serializer.validated_data['description'])
+                return Response('Your company details have been updated',
+                                status=201)
+            else:
+                return Response(
+                    'You cannot make changes to other companies')
+        elif request.user.is_staff:
+            Company.objects.filter(
+                id=company.id).update(
+                name=serializer.validated_data['name'],
+                location=serializer.validated_data['location'],
+                description=serializer.validated_data['description'])
+            return Response('Company information updated', status=201)
+        else:
+            return Response(
+                'Please contact an administrator to make changes to a company')
+
+    def destroy(self, request, *args, **kwargs):
+        chosen_company = self.get_object()
+        if request.user.baseuser.user_type == 'com':
+            com_profile = CompanyProfile.objects.get(
+                base_user_id=request.user.baseuser.id)
+            if com_profile.company.id == chosen_company.id:
+                self.perform_destroy(chosen_company)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(
+                    'You cannot delete companies other than your own')
+        elif request.user.is_staff:
+            self.perform_destroy(chosen_company)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(
+                'Please contact an administrator to make changes to a company')
+
+    def perform_destroy(self, chosen_company):
+        with transaction.atomic():
+            chosen_company.delete()
+
 
 class JobPostingAPIViewSet(ModelViewSet):
+    search_fields = ['job_title', 'description', 'company__company__name']
+    filter_backends = (filters.SearchFilter,)
     queryset = JobPosting.objects.all()
     serializer_class = JobPostingSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+
+    def create(self, request, *args, **kwargs):
+        serializer = JobPostingSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        job_title = serializer.data['job_title']
+        description = serializer.data['description']
+        salary = serializer.data['salary']
+
+        if request.user.baseuser.user_type == 'com':
+            com_profile = CompanyProfile.objects.get(
+                base_user_id=request.user.baseuser.id)
+            with transaction.atomic():
+                job_post = JobPosting.objects.create(
+                    job_title=job_title,
+                    description=description,
+                    salary=salary,
+                    company_id=com_profile.company.id,
+                )
+                job_post.save()
+                return Response(JobPostingSerializer(job_post).data,
+                                status=201)
+        else:
+            return Response('Only companies can post jobs')
+
+
+class JobPostCommentAPIViewSet(ModelViewSet):
+    search_fields = ['text',]
+    filter_backends = (filters.SearchFilter,)
+    queryset = JobPostComment.objects.all()
+    serializer_class = JobPostCommentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        serializer = JobPostCommentSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        post = serializer.data['post']
+        text = serializer.data['text']
+        date_created = serializer.data['date_created']
+        with transaction.atomic():
+            new_comment = JobPostComment.objects.create(
+                post_id=post,
+                text=text,
+                date_created=date_created,
+                author_id=request.user.baseuser.id)
+            new_comment.save()
+            return Response(JobPostCommentSerializer(new_comment).data,
+                            status=201)
