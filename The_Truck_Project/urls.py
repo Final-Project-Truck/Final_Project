@@ -83,10 +83,10 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-    path('chat/', views.chat_view, name='chats'),
-    path('chat/<int:sender>/<int:receiver>/', views.message_view, name='chat'),
-    path('api/messages/<int:sender>/<int:receiver>/', views.message_list,
+    path('chat/v1', views.chat_view, name='chats'),
+    path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
+         name='chat'),
+    path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
          name='message-detail'),
-    path('api/messages/', views.message_list, name='message-list'),
-    path('', include(router.urls)),
+    path('api/v1/messages/', views.message_list, name='message-list'),
 ]

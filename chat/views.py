@@ -73,7 +73,7 @@ def chat_view(request):
 
 def message_view(request, sender, receiver):
     if not request.user.is_authenticated:
-        return redirect('index')
+        return redirect('home')
     if request.method == "GET":
         return render(request, "chat/messages.html",
                       {'users': User.objects.exclude(
