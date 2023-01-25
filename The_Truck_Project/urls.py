@@ -30,10 +30,9 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
-from analytics import views
+from analytics.views import generate_report
 from chat import views
 from chat.views import MessageViewSet
-import analytics
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -86,7 +85,7 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-    path('api/v1/report/', analytics.views.generate_report),
+    path('api/v1/report/', generate_report, name='report'),
     path('chat/v1', views.chat_view, name='chats'),
     path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
          name='chat'),

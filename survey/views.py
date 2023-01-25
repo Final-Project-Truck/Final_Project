@@ -92,21 +92,6 @@ class SurveyAPIViewSet(ModelViewSet):
         else:
             return Response('User of type company can not create a survey')
 
-    # def generate_report(self):
-    #     matplotlib.use('Agg')
-    #     template_questions = Question.objects.filter(
-    #         template_question=True)
-    #     q1 = str(template_questions[0])
-    #     q2 = str(template_questions[1])
-    #     q3 = str(template_questions[2])
-    #     x = np.array([q1, q2, q3])
-    #     y = np.array([35, 25, 25])
-    #
-    #     plt.plot(x, y)
-    #     plt.savefig('chart2.png')
-    #
-    #     return 1
-
     '''
     Do not allow user to inactivate the survey if submission is created for it
     '''
@@ -418,20 +403,6 @@ class SubmissionAPIViewSet(ModelViewSet):
         else:
             return Response(
                 'Complete the survey to submit it / Invalid submission')
-
-    # def generate_report(self):
-    #     matplotlib.use('Agg')
-    #     template_questions = Question.objects.filter(template_question=True)
-    #     q1 = template_questions[0]
-    #     q2 = template_questions[1]
-    #     q3 = template_questions[2]
-    #     x = np.array(q1, q2, q3)
-    #     y = np.array([35, 25, 25, 15])
-    #
-    #     plt.pie(y)
-    #     plt.savefig('chart2.png')
-    #
-    #     return 1
 
     def destroy(self, request, *args, **kwargs):
         submission_survey = self.get_object()
