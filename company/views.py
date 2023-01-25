@@ -26,14 +26,17 @@ class CompanyAPIViewSet(ModelViewSet):
         with transaction.atomic():
             """Create Company"""
             company = Company.objects.create(**serializer.data)
-
+            title = f"{company.name}'s Template Survey "
             """Create Company Survey"""
             survey = Survey.objects.create(
-                title="Template Survey", is_active=False, company=company)
+                title=title, is_active=False, company=company)
+            question_1 = f"{company.name}'s Question 1"
+            question_2 = f"{company.name}'s Question 2"
+            question_3 = f"{company.name}'s Question 3"
 
             """Template Question 1"""
             template_question_1 = Question.objects.create(
-                prompt="Question 1", type='cho', template_question=True)
+                prompt=question_1, type='cho', template_question=True)
             template_question_1.save()
             template_question_1_option_1 = Option.objects.create(
                 question=template_question_1, text="True")
@@ -45,7 +48,7 @@ class CompanyAPIViewSet(ModelViewSet):
 
             """Template Question 2"""
             template_question_2 = Question.objects.create(
-                prompt="Question 2", type='cho', template_question=True)
+                prompt=question_2, type='cho', template_question=True)
             template_question_2.save()
             template_question_2_option_1 = Option.objects.create(
                 question=template_question_2, text="Strongly Agree")
@@ -65,7 +68,7 @@ class CompanyAPIViewSet(ModelViewSet):
 
             """Template Question 3"""
             template_question_3 = Question.objects.create(
-                prompt="Question 3", type='txt', template_question=True)
+                prompt=question_3, type='txt', template_question=True)
             template_question_3.save()
 
             """Combine Template Questions with Company Survey"""

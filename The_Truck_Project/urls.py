@@ -20,6 +20,7 @@ from django.contrib.auth import views as auth_views
 from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet
 from baseuser.views import registerPage, loginPage, logoutPage, home
@@ -29,6 +30,7 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
+from analytics import views
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -80,5 +82,6 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
+    path('api/v1/report/', views.generate_report)
 
 ]
