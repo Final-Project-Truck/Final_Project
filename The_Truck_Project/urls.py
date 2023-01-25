@@ -31,6 +31,9 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
 from analytics import views
+from chat import views
+from chat.views import MessageViewSet
+import analytics
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -59,6 +62,7 @@ router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
+router.register(r'messages', MessageViewSet)
 
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
@@ -82,6 +86,11 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-    path('api/v1/report/', views.generate_report)
-
+    path('api/v1/report/', analytics.views.generate_report),
+    path('chat/v1', views.chat_view, name='chats'),
+    path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
+         name='chat'),
+    path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
+         name='message-detail'),
+    path('api/v1/messages/', views.message_list, name='message-list'),
 ]
