@@ -4,12 +4,15 @@ from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsOwner
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
+from django.contrib.auth.decorators import login_required
+import requests
+from django.shortcuts import render
 from baseuser.models import CompanyProfile
 from company.models import JobPosting, Company, JobPostComment
 from company.serializers import CompanySerializer, JobPostingSerializer, \
     JobPostCommentSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
+from requests.auth import HTTPBasicAuth
 
 
 class CompanyAPIViewSet(ModelViewSet):
@@ -189,3 +192,26 @@ class JobPostCommentAPIViewSet(ModelViewSet):
             new_comment.save()
             return Response(JobPostCommentSerializer(new_comment).data,
                             status=201)
+
+
+"""Form View"""
+basic = HTTPBasicAuth('peter', '12345')
+
+
+@login_required
+def company(request):
+    """User can view all companies in the system"""
+    companies = requests.get('http://127.0.0.1:8000/api/v1/companies/',
+                             auth=basic)
+    return render(request, "company_list.html", {"companies": companies})
+
+
+@login_required
+def company_details(request, company_id):
+    """Show all company details with button to create survey"""
+    specific_company = Company.objects.get(id=company_id)
+    context = {
+        'company': specific_company,
+        'surveys': Survey.objects.filter(company_id=specific_company.id)
+    }
+    return render(request, 'company_details.html', context)

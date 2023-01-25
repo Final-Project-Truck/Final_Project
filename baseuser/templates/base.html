@@ -43,6 +43,7 @@ registerbutton{
     {% if user.is_authenticated %}
     <a href="{% url 'home' %}">Home</a>/
     <a href="{% url 'logoutPage' %}">Logout</a>
+
 {% else %}
     <a href="{% url 'home' %}">Home</a>/
     <a href="{% url 'loginPage' %}">User</a>

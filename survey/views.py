@@ -9,12 +9,14 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from authentication.permissions import IsOwner, IsSurveyOwner, \
     IsSubmissionOwner
+from django.views.generic import FormView
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
 from survey.serializers import SurveySerializer, QuestionSerializer, \
     OptionSerializer, SubmissionSerializer, \
     AnswerChoiceSerializer, AnswerTextSerializer, SurveyQuestionSerializer
+from survey.forms import SurveyForm, QuestionForm
 
 
 class SurveyAPIViewSet(ModelViewSet):
@@ -569,3 +571,18 @@ class AnswerTextAPIViewSet(ModelViewSet):
             return Response(serializer.data)
         else:
             return Response('Invalid update')
+
+
+"""Form View"""
+
+
+class SurveyCreationView(FormView):
+    template_name = 'create_survey.html'
+    form_class = SurveyForm
+    success_url = '/companies/'
+
+    def post(self, request, **kwargs):
+        form = SurveyForm(request.POST)
+        if form.is_valid():
+            form.save()
+        return super().post(request)

@@ -30,6 +30,9 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
 
+import company.views
+import survey.views
+
 schema_view = get_schema_view(
    openapi.Info(
       title="The_Truck_Project",
@@ -66,6 +69,11 @@ urlpatterns = [
     path('api/v1/', include(router.urls), name="api"),
     path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
+
+    path('companies/', company.views.company, name="companies"),
+    path('companies/<int:company_id>/', company.views.company_details),
+    path('survey/create/', survey.views.SurveyCreationView.as_view()),
+
     path('registerPage/', registerPage, name="registerPage"),
     path('loginPage/', loginPage, name="loginPage"),
     path('logoutPage/', logoutPage, name="logoutPage"),
