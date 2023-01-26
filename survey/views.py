@@ -1,7 +1,3 @@
-# import matplotlib
-# import matplotlib.pyplot as plt
-# import numpy as np
-
 from django.db import transaction
 from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
@@ -95,21 +91,6 @@ class SurveyAPIViewSet(ModelViewSet):
                                     status=201)
         else:
             return Response('User of type company can not create a survey')
-
-    # def generate_report(self):
-    #     matplotlib.use('Agg')
-    #     template_questions = Question.objects.filter(
-    #         template_question=True)
-    #     q1 = str(template_questions[0])
-    #     q2 = str(template_questions[1])
-    #     q3 = str(template_questions[2])
-    #     x = np.array([q1, q2, q3])
-    #     y = np.array([35, 25, 25])
-    #
-    #     plt.plot(x, y)
-    #     plt.savefig('chart2.png')
-    #
-    #     return 1
 
     '''
     Do not allow user to inactivate the survey if submission is created for it
@@ -342,29 +323,38 @@ class SubmissionAPIViewSet(ModelViewSet):
         is_complete = serializer.data['is_complete']
 
         survey_chosen = Survey.objects.get(id=survey)
+        if not request.user.is_staff:
+            submission_made = Submission.objects.filter(
+                survey_id=survey,
+                submitter_id=request.user.baseuser)
+            with transaction.atomic():
+                # if not survey_chosen.creator:
+                #     return Response('Submission cannot
+                #     be created for template survey')
+                # elif survey_chosen.creator.id == request.user.id:
+                if not submission_made:
+                    if survey_chosen.is_active:
+                        if serializer.data['is_complete']:
+                            return Response(
+                                'Submission cannot be completed during'
+                                ' creation, Please uncheck is_complete')
+                        else:
+                            submission = Submission.objects.create(
+                                survey_id=survey,
+                                # created_at=created,
+                                is_complete=is_complete,
+                                submitter_id=request.user.id)
 
-        with transaction.atomic():
-            # if not survey_chosen.creator:
-            #     return Response('Submission cannot be created for template '
-            #                     'survey')
-            # elif survey_chosen.creator.id == request.user.id:
-            if survey_chosen.is_active:
-                if serializer.data['is_complete']:
-                    return Response(
-                        'Submission cannot be completed during creation, '
-                        'Please uncheck is_complete')
+                            return Response(
+                                SubmissionSerializer(submission).data,
+                                status=201)
+                    else:
+                        return Response(
+                            'Survey is not active, cannot create submission')
                 else:
-                    submission = Submission.objects.create(
-                        survey_id=survey,
-                        # created_at=created,
-                        is_complete=is_complete,
-                        submitter_id=request.user.id)
-
-                    return Response(SubmissionSerializer(submission).data,
-                                    status=201)
-            else:
-                return Response(
-                    'Survey is not active, cannot create submission')
+                    return Response('Submission is already made to the survey')
+        else:
+            return Response('Admin cannot create submission')
             # else:
             #     return Response('Submission cannot be created for other '
             #                     'users survey')
@@ -414,20 +404,6 @@ class SubmissionAPIViewSet(ModelViewSet):
             return Response(
                 'Complete the survey to submit it / Invalid submission')
 
-    # def generate_report(self):
-    #     matplotlib.use('Agg')
-    #     template_questions = Question.objects.filter(template_question=True)
-    #     q1 = template_questions[0]
-    #     q2 = template_questions[1]
-    #     q3 = template_questions[2]
-    #     x = np.array(q1, q2, q3)
-    #     y = np.array([35, 25, 25, 15])
-    #
-    #     plt.pie(y)
-    #     plt.savefig('chart2.png')
-    #
-    #     return 1
-
     def destroy(self, request, *args, **kwargs):
         submission_survey = self.get_object()
         if not submission_survey.is_complete:
@@ -464,19 +440,25 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
 
         survey_submission = Submission.objects.get(id=submission)
         survey_chosen = Survey.objects.get(id=survey_submission.survey_id)
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question, survey_id=survey_chosen.id)
 
         if survey_chosen.is_active and not survey_submission.is_complete:
-            question_chosen = Question.objects.get(id=question)
+            if survey_question:
+                question_chosen = Question.objects.get(id=question)
 
-            if question_chosen.type == 'cho':
-                AnswerChoice.objects.create(submission_id=submission,
-                                            question_id=question,
-                                            option_id=option)
+                if question_chosen.type == 'cho':
+                    AnswerChoice.objects.create(submission_id=submission,
+                                                question_id=question,
+                                                option_id=option)
+                else:
+                    return Response('Choose valid question')
+                return Response(serializer.data, status=201)
             else:
-                return Response('Choose valid question')
-            return Response(serializer.data, status=201)
+                return Response('Chosen question is not available in survey')
         else:
-            return Response('Survey is either not active or already submitted')
+            return Response(
+                'Survey is either not active or already submitted')
 
     '''
     Allow users to update only the answers to the added question,
@@ -527,18 +509,24 @@ class AnswerTextAPIViewSet(ModelViewSet):
         survey_submission = Submission.objects.get(id=submission)
 
         survey_chosen = Survey.objects.get(id=survey_submission.survey_id)
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question, survey_id=survey_chosen.id)
 
         if survey_chosen.is_active and not survey_submission.is_complete:
-            question_chosen = Question.objects.get(id=question)
-            if question_chosen.type == 'txt':
-                AnswerText.objects.create(submission_id=submission,
-                                          question_id=question,
-                                          comment=comment)
+            if survey_question:
+                question_chosen = Question.objects.get(id=question)
+                if question_chosen.type == 'txt':
+                    AnswerText.objects.create(submission_id=submission,
+                                              question_id=question,
+                                              comment=comment)
+                else:
+                    return Response('Choose valid question')
+                return Response(serializer.data, status=201)
             else:
-                return Response('Choose valid question')
-            return Response(serializer.data, status=201)
+                return Response('Chosen question is not available in survey')
         else:
-            return Response('Survey is either not active or already submitted')
+            return Response(
+                'Survey is either not active or already submitted')
 
     '''
         Allow users to update only the answers to the added question,
