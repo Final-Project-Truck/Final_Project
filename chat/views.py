@@ -1,5 +1,6 @@
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.http.response import JsonResponse, HttpResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -19,8 +20,7 @@ class MessageViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        return Message.objects.filter(sender=user) | Message.objects.filter(
-            receiver=user)
+        return Message.objects.filter(Q(sender=user) | Q(receiver=user))
 
 
 def chat(request):
