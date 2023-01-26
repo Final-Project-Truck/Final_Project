@@ -4,14 +4,16 @@ from chat.models import Message
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    sender = serializers.SlugRelatedField(many=False, slug_field='username',
-                                          queryset=User.objects.all())
+    sender = serializers.SerializerMethodField()
     receiver = serializers.SlugRelatedField(many=False, slug_field='username',
                                             queryset=User.objects.all())
 
     class Meta:
         model = Message
         fields = ['sender', 'receiver', 'message', 'timestamp']
+
+    def get_sender(self, obj):
+        return obj.sender.username
 
     def create(self, validated_data):
         validated_data['sender'] = self.context['request'].user
