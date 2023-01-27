@@ -8,14 +8,16 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework import status, filters
+from rest_framework import status, filters, generics
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 from baseuser.serializers import BaseUsersSerializer, \
-    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
+    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer, \
+    ChangePasswordSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -159,6 +161,45 @@ def forget_password(request):
             return redirect('forget_password')
     else:
         return render(request, 'forget_password.html')
+
+
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+    serializer_class = ChangePasswordSerializer
+    model = BaseUsers
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get
+                                                  ("old_password")):
+                return Response({"old_password": ["Wrong password."]},
+                                status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            # update the password in the BaseUsers table
+            base_user = BaseUsers.objects.get(django_user=self.object)
+            base_user.password1 = serializer.data.get("new_password")
+            base_user.password2 = serializer.data.get("new_password")
+            base_user.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+            }
+            return Response(response)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 def loginPage(request):
