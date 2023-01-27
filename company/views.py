@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.db.models import Exists, OuterRef, Q, Count
 from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsOwner
@@ -6,9 +7,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from baseuser.models import CompanyProfile
-from company.models import JobPosting, Company, JobPostComment
+from company.models import JobPosting, Company, JobPostComment, PostLike
 from company.serializers import CompanySerializer, JobPostingSerializer, \
-    JobPostCommentSerializer
+    JobPostCommentSerializer, PostLikeSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
 
 
@@ -146,6 +147,12 @@ class JobPostingAPIViewSet(ModelViewSet):
     serializer_class = JobPostingSerializer
     permission_classes = [IsAuthenticated, IsOwner]
 
+    def get_queryset(self):
+        check = Exists(PostLike.objects.filter(user=self.request.user.baseuser,
+                                               post_id=OuterRef('pk')))
+        return JobPosting.objects.annotate(is_liked=check).\
+            order_by('job_title')
+
     def create(self, request, *args, **kwargs):
         serializer = JobPostingSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -192,3 +199,74 @@ class JobPostCommentAPIViewSet(ModelViewSet):
             new_comment.save()
             return Response(JobPostCommentSerializer(new_comment).data,
                             status=201)
+
+
+class PostLikeAPIViewSet(ModelViewSet):
+    """
+    A ViewSet for handling the CRUD operations for a user's post likes.
+    """
+    queryset = PostLike.objects.all()
+    serializer_class = PostLikeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        """
+        Only return the post likes for the authenticated user.
+        """
+        user = self.request.user.baseuser
+        return PostLike.objects.filter(Q(user=user))
+
+    def get(self, request, pk):
+        """
+        Retrieve the like count for a specific job post.
+        """
+        job_post = JobPosting.objects.filter(pk=pk).annotate(
+            like_count=Count('likes'))
+        serializer = self.serializer_class(job_post, many=False)
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Handle the creation of a new post like.
+        Will return a 304 status code if the post is already liked by the user.
+        """
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        if serializer.is_valid():
+            liker = request.user.baseuser
+            post = serializer.validated_data.get('post')
+            if PostLike.objects.filter(user=liker, post=post).exists():
+                return Response(status=status.HTTP_304_NOT_MODIFIED)
+            serializer.save(user=liker, post=post)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        """
+        Handle the update of a post like.
+        Will return a 304 status code if the post is already liked by the user.
+        """
+        instance = self.get_object()
+        serializer = self.serializer_class(instance, data=request.data,
+                                           context={'request': request})
+        if serializer.is_valid():
+            liker = request.user.baseuser
+            post = serializer.validated_data.get('post')
+            if PostLike.objects.filter(user=liker, post=post).exclude(
+                    pk=instance.pk).exists():
+                return Response(status=status.HTTP_304_NOT_MODIFIED)
+            serializer.save(user=liker, post=post)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Handle the deletion of a post like.
+        Will return a 403 status code if the authenticated user is not the one
+        who created the like
+        """
+        instance = self.get_object()
+        if instance.user != request.user.baseuser:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+        self.perform_destroy(instance)
+        return Response(status=status.HTTP_204_NO_CONTENT)
