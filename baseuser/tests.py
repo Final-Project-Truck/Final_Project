@@ -103,9 +103,16 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def test_if_django_user_is_updated_when_baseuser_is_updated(self):
         response = self.client.get('/api/v1/baseusers/100/')
+        response.data['password'] = 'name1' # since password is write only
+        # now it is not returned in the response body
+        print(response.data)
         response.data['username'] = 'Divya'
-        self.client.put('/api/v1/baseusers/100/', response.data)
-        django_user = User.objects.get(email=response.data['email'])
+        print(response.data)
+        resopnse2=self.client.put('/api/v1/baseusers/100/', response.data)
+        print(resopnse2.data)
+        print(resopnse2)
+        django_user = User.objects.get(baseuser=100)
+        print(django_user)
         self.assertEqual(django_user.username, 'Divya')
 
     def test_if_baseuser_is_deleted(self):
@@ -155,10 +162,12 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def test_if_company_can_create_a_company_profile(self):
         # retrieve a company_user
-        company_user = BaseUsers.objects.get(id=101)
+        # company_user = BaseUsers.objects.get(id=101)
         # log in as a company user
-        self.client.login(username=company_user.username,
-                          password=company_user.password)
+        self.client.login(username='company',
+                          password='name2')  # since  the passwort is now
+        # hashed
+        # during saving we can not retrieve it and pass it to login
         data = {"base_user": 101, "company": 500,
                 "website": "https://www.google.com/",
                 "number_of_employees": 100,
