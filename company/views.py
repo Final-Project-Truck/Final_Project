@@ -35,15 +35,23 @@ class CompanyAPIViewSet(ModelViewSet):
             question_2 = f"{company.name}'s Question 2"
             question_3 = f"{company.name}'s Question 3"
 
+            text_1 = f"{question_1} True"
+            text_2 = f"{question_1} False"
+            text_3 = f"{question_2} Strongly Agree"
+            text_4 = f"{question_2} Agree"
+            text_5 = f"{question_2} Neutral"
+            text_6 = f"{question_2} Disagree"
+            text_7 = f"{question_2} Strongly Disagree"
+
             """Template Question 1"""
             template_question_1 = Question.objects.create(
                 prompt=question_1, type='cho', template_question=True)
             template_question_1.save()
             template_question_1_option_1 = Option.objects.create(
-                question=template_question_1, text="True")
+                question=template_question_1, text=text_1)
             template_question_1_option_1.save()
             template_question_1_option_2 = Option.objects.create(
-                question=template_question_1, text="False")
+                question=template_question_1, text=text_2)
             template_question_1_option_2.save()
             # related to template question 1
 
@@ -52,19 +60,19 @@ class CompanyAPIViewSet(ModelViewSet):
                 prompt=question_2, type='cho', template_question=True)
             template_question_2.save()
             template_question_2_option_1 = Option.objects.create(
-                question=template_question_2, text="Strongly Agree")
+                question=template_question_2, text=text_3)
             template_question_2_option_1.save()
             template_question_2_option_2 = Option.objects.create(
-                question=template_question_2, text="Agree")
+                question=template_question_2, text=text_4)
             template_question_2_option_2.save()
             template_question_2_option_3 = Option.objects.create(
-                question=template_question_2, text="Neutral")
+                question=template_question_2, text=text_5)
             template_question_2_option_3.save()
             template_question_2_option_4 = Option.objects.create(
-                question=template_question_2, text="Disagree")
+                question=template_question_2, text=text_6)
             template_question_2_option_4.save()
             template_question_2_option_5 = Option.objects.create(
-                question=template_question_2, text="Strongly Disagree")
+                question=template_question_2, text=text_7)
             template_question_2_option_5.save()
 
             """Template Question 3"""
@@ -161,18 +169,22 @@ class JobPostingAPIViewSet(ModelViewSet):
         salary = serializer.data['salary']
 
         if request.user.baseuser.user_type == 'com':
-            com_profile = CompanyProfile.objects.get(
+            com_profile = CompanyProfile.objects.filter(
                 base_user_id=request.user.baseuser.id)
             with transaction.atomic():
-                job_post = JobPosting.objects.create(
-                    job_title=job_title,
-                    description=description,
-                    salary=salary,
-                    company_id=com_profile.company.id,
-                )
-                job_post.save()
-                return Response(JobPostingSerializer(job_post).data,
-                                status=201)
+                if com_profile:
+                    job_post = JobPosting.objects.create(
+                        job_title=job_title,
+                        description=description,
+                        salary=salary,
+                        company_id=com_profile.company.id,
+                    )
+                    job_post.save()
+                    return Response(JobPostingSerializer(job_post).data,
+                                    status=201)
+                else:
+                    return Response(
+                        'Please create Company profile to post a job')
         else:
             return Response('Only companies can post jobs')
 
