@@ -8,8 +8,8 @@ router = routers.DefaultRouter()
 router.register(r'messages', MessageViewSet)
 
 urlpatterns = [
-    # path('', include(router.urls),
-    #      name='massages'),
+    path('', include(router.urls),
+         name='massages'),
     path('chat/v1', views.chat_view, name='chats'),
     path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
          name='chat'),

@@ -16,6 +16,6 @@ router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
 
-# urlpatterns = [
-#     path('', include(router.urls), name='survey'),
-# ]
+urlpatterns = [
+    path('', include(router.urls), name='survey'),
+]

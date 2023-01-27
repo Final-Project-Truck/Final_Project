@@ -10,7 +10,7 @@ router.register(r'job_posting', JobPostingAPIViewSet)
 router.register(r'job_post_comment', JobPostCommentAPIViewSet)
 router.register(r'companies', CompanyAPIViewSet)
 
-# urlpatterns = [
-#     path('', include(router.urls),
-#          name='companies'),
-# ]
+urlpatterns = [
+    path('', include(router.urls),
+         name='companies'),
+]

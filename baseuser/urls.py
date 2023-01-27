@@ -15,8 +15,8 @@ router.register(r'company-profile', CompanyProfileAPIViewSet)
 
 
 urlpatterns = [
-    # path('', include(router.urls),
-    #      name='baseusers'),
+    path('', include(router.urls),
+         name='baseusers'),
     path('api-auth/', include('rest_framework.urls')),
     # path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     #   path('registerPage/', registerPage, name="registerPage"),
