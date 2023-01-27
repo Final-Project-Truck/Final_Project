@@ -6,4 +6,4 @@ class BaseuserConfig(AppConfig):
     name = 'baseuser'
 
     def ready(self):
-        import baseuser.signals  # noqa
+        import baseuser.signals

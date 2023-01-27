@@ -7,7 +7,7 @@ from drf_yasg import openapi
 
 from baseuser.views import BaseUsersAPIViewSet, UserProfileAPIViewSet, \
     CompanyProfileAPIViewSet #, BaseUsersSafeAPIViewSet
-from baseuser.views import  loginPage, logoutPage, home #,registerPage
+from baseuser.views import  loginPage, logoutPage, home ,registerPage
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
@@ -55,7 +55,7 @@ urlpatterns = [
     path('api/v1/', include(router.urls), name="api"),
     # path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
     path('admin/', admin.site.urls),
-    # path('registerPage/', registerPage, name="registerPage"),
+    path('registerPage/', registerPage, name="registerPage"),
     path('loginPage/', loginPage, name="loginPage"),
     path('logoutPage/', logoutPage, name="logoutPage"),
     path('password_reset/', auth_views.PasswordResetView.as_view(

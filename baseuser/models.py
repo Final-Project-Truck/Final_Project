@@ -37,8 +37,9 @@ class BaseUsers(models.Model):
         existing_user = User.objects.filter(email=self.email).first()
         print(existing_user)
         if existing_user:
-            # Delete the existing User instance
-            existing_user.delete()
+            """ Delete the email if a user exists with it already to make the 
+            # email in the user model unique"""
+            existing_user.email = ''
         if self.pk:
             django_user = self.django_user
             django_user.username = self.username

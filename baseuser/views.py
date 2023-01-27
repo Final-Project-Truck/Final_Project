@@ -12,7 +12,7 @@ from rest_framework import status, filters
 from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-# from baseuser.forms import BaseUsersForm
+from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 from baseuser.serializers import BaseUsersSerializer, UserProfileSerializer, \
     CompanyProfileSerializer#, BaseUsersSafeSerializer
@@ -87,39 +87,39 @@ class BaseUsersAPIViewSet(ModelViewSet):
 #     serializer_class = BaseUsersSafeSerializer
 
 
-# def registerPage(request):
-#     if request.user.is_authenticated:
-#         return redirect('home')
-#     else:
-#         form = BaseUsersForm(request.POST or None)
-#         if request.method == 'POST':
-#             form = BaseUsersForm(request.POST)
-#             if form.is_valid():
-#                 with transaction.atomic():
-#                     djangouser, created = User.objects.get_or_create(
-#                         username=form.cleaned_data['username'])
-#                     if created:
-#                         djangouser.email = form.cleaned_data['email']
-#                         djangouser.set_password(form.cleaned_data['password'])
-#                         djangouser.save()
-#                         BaseUsers.objects.create(**form.cleaned_data,
-#                                                  django_user=djangouser)
-#                         messages.success(request,
-#                                          'Account was created for ' +
-#                                          djangouser.username)
-#                         send_mail(
-#                             'Register Completed',  # Change your Subject
-#                             'Thank you for joining our Website',
-#                             # Change your message
-#                             'struckproject@gmail.com',
-#                             # Put the email your going to use
-#                             [djangouser.email],
-#                             fail_silently=False
-#                         )
-#                         return redirect('home')
-#                     else:
-#                         messages.error(request, 'Username already taken')
-#         return render(request, 'registerPage.html', {'form': form})
+def registerPage(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    else:
+        form = BaseUsersForm(request.POST or None)
+        if request.method == 'POST':
+            form = BaseUsersForm(request.POST)
+            if form.is_valid():
+                with transaction.atomic():
+                    djangouser, created = User.objects.get_or_create(
+                        username=form.cleaned_data['username'])
+                    if created:
+                        djangouser.email = form.cleaned_data['email']
+                        djangouser.set_password(form.cleaned_data['password'])
+                        djangouser.save()
+                        BaseUsers.objects.create(**form.cleaned_data,
+                                                 django_user=djangouser)
+                        messages.success(request,
+                                         'Account was created for ' +
+                                         djangouser.username)
+                        send_mail(
+                            'Register Completed',  # Change your Subject
+                            'Thank you for joining our Website',
+                            # Change your message
+                            'struckproject@gmail.com',
+                            # Put the email your going to use
+                            [djangouser.email],
+                            fail_silently=False
+                        )
+                        return redirect('home')
+                    else:
+                        messages.error(request, 'Username already taken')
+        return render(request, 'registerPage.html', {'form': form})
 
 
 def forget_password(request):
