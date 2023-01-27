@@ -22,7 +22,7 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    UserProfileAPIViewSet, CompanyProfileAPIViewSet
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordView
 from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
     PostLikeAPIViewSet
@@ -94,5 +94,6 @@ urlpatterns = [
     path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
          name='message-detail'),
     path('api/v1/messages/', views.message_list, name='message-list'),
-
+    path('api/v1/change-password/', ChangePasswordView.as_view(),
+         name='change-password'),
 ]
