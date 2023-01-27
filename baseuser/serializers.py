@@ -27,7 +27,7 @@ class CompanyProfileSerializer(ModelSerializer):
 
     class Meta:
         model = CompanyProfile
-        fields = '__all__'
+        exclude = ['base_user']
 
 
 class ChangePasswordSerializer(serializers.Serializer):
