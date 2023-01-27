@@ -259,25 +259,19 @@ class CompanyProfileAPIViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = CompanyProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        base_user = serializer.data['base_user']
         company = serializer.data['company']
         website = serializer.data['website']
         number_of_employees = serializer.data['number_of_employees']
         organization_type = serializer.data['organization_type']
         revenue = serializer.data['revenue']
 
-        user_reference = BaseUsers.objects.get(
-            id=serializer.validated_data['base_user'].id)
-
-        if user_reference.user_type == 'per':
-            return Response(
-                'A Person cannot create a Company Profile'
-            )
-        else:
+        if request.user.baseuser.user_type == 'com':
             CompanyProfile.objects.create(
-                base_user_id=base_user, company_id=company,
+                base_user_id=request.user.baseuser.id, company_id=company,
                 website=website,
                 number_of_employees=number_of_employees,
                 organization_type=organization_type,
                 revenue=revenue)
             return Response(serializer.data, status=201)
+        else:
+            return Response('Only authorized user can create company profile')
