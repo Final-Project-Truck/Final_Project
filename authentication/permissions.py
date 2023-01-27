@@ -31,7 +31,10 @@ class IsSurveyOwner(permissions.BasePermission):
         if request.user.is_staff:
             return False
         elif request.user.baseuser:
-            return obj.survey.creator == request.user.baseuser
+            if obj.submitter:
+                return obj.submitter == request.user.baseuser
+            elif obj.survey:
+                return obj.survey.creator == request.user.baseuser
 
 
 class IsSubmissionOwner(permissions.BasePermission):
