@@ -36,4 +36,4 @@ class ChangePasswordSerializer(serializers.Serializer):
 
     class Meta:
         model = BaseUsers
-        fields = ('password1', 'password2')
+        fields = ('password',)

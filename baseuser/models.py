@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from company.models import Company
@@ -20,33 +21,69 @@ class BaseUsers(models.Model):
     password = models.CharField(max_length=200)
     email = models.EmailField(max_length=200, unique=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True,
-                                        blank=True)
-    django_user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                       related_name='baseuser')
-    user_type = models.CharField(max_length=3, choices=[('per', 'Person'),
-                                                        ('com', 'Company')])
+                                        blank=True)  # todo
+    # check why it is not working
+    django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
+    user_type = models.CharField(max_length=3, choices=type_choices)
 
     def __str__(self):
+
         return f'{self.username}'
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        django_user, created = User.objects.get_or_create(email=self.email,
-                                                          defaults={
-                                                              'username': self.username,
-                                                              'password': self.password})
+        # this part is for the put method
 
-        if not created:
+        existing_user = User.objects.filter(email=self.email).first()
+        print(existing_user)
+        # if existing_user:
+        #     existing_user.email = ''
+            # if existing_user.baseuser:
+
+                # if existing_user.username != self.username:
+                #
+                #     """ Delete the email if a user exists with it already to make the
+                #     # email in the user model unique"""
+                #     existing_user.email = ''
+
+        # this part is for the put method and updating the user
+        if self.pk:
+            django_user = self.django_user
             django_user.username = self.username
+            django_user.email = self.email
             django_user.set_password(self.password)
             django_user.save()
-        self.django_user = django_user
+            self.django_user = django_user
+            self.password = self.django_user.password
+        # this part is for the create or Post method
+        else:
+            django_user = User.objects.create_user(username=self.username,
+                                                   email=self.email,
+                                                   password=self.password)
+            self.django_user = django_user
+            self.password = self.django_user.password
+            super().save(*args, **kwargs)
         super().save(*args, **kwargs)
 
     @transaction.atomic
     def delete(self, *args, **kwargs):
-        self.django_user.delete()
+        django_user = User.objects.get(baseuser=self)
+        django_user.delete()
         super().delete(*args, **kwargs)
+
+
+# class BaseUsers(models.Model):
+#     username = models.CharField(max_length=200, null=True)
+#     password1 = models.CharField(max_length=200, null=True)
+#     password2 = models.CharField(max_length=200, null=True)
+#     email = models.EmailField(max_length=200, null=True, unique=True)
+#     date_created = models.DateTimeField(auto_now_add=True, null=True)
+#     django_user = models.OneToOneField(User, on_delete=models.CASCADE,
+#                                        related_name='baseuser')
+#     user_type = models.CharField(max_length=3, choices=type_choices)
+#
+#     def __str__(self):
+#         return f'{self.username}'
 
 
 class UserProfile(models.Model):

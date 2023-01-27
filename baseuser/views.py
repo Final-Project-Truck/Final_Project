@@ -9,86 +9,21 @@ from django.shortcuts import render, redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework import status, filters, generics
-from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
-from baseuser.serializers import BaseUsersSerializer, \
-    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer, \
-    ChangePasswordSerializer
+from baseuser.serializers import BaseUsersSerializer, UserProfileSerializer,\
+    CompanyProfileSerializer, ChangePasswordSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
     queryset = BaseUsers.objects.all()
     serializer_class = BaseUsersSerializer
 
-    # def create(self, request, *args, **kwargs):
-    #     serializer = BaseUsersSerializer(data=request.data)
-    #     serializer.is_valid(raise_exception=True)
-    #     username = serializer.data['username']
-    #     password = serializer.data['password']
-    #
-    #     email = serializer.data['email']
-    #     # Todo check password 'field level validation'
-    #     with transaction.atomic():
-    #
-    #         django_user = User.objects.create_user(username=username,
-    #                                                password=password,
-    #                                                email=email)
-    #         base_user = BaseUsers.objects.create(**serializer.data,
-    #                                              django_user=django_user)
-    #         return Response(BaseUsersSerializer(base_user).data,
-    #                         status=201)
-    #
-    #
-    # def update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     baseuser = self.get_object()
-    #     serializer = self.get_serializer(baseuser, data=request.data,
-    #                                      partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     with transaction.atomic():
-    #         self.perform_update(serializer, baseuser)
-    #
-    #     if getattr(baseuser, '_prefetched_objects_cache', None):
-    #         # If 'prefetch_related' has been applied to a queryset, we need to
-    #         # forcibly invalidate the prefetch cache on the instance.
-    #         baseuser._prefetched_objects_cache = {}
-    #
-    #     return Response(serializer.data)
-    #
-    # def perform_update(self, serializer, baseuser):
-    #     with transaction.atomic():
-    #         User.objects.filter(pk=baseuser.id).update(
-    #             username=serializer.validated_data['username'],
-    #             password=serializer.validated_data["password"],
-    #             email=serializer.validated_data["email"]
-    #         )
-    #     serializer.save()
-    #
-    # def partial_update(self, request, *args, **kwargs):
-    #     kwargs['partial'] = True
-    #     return self.update(request, *args, **kwargs)
-    #
-    # def destroy(self, request, *args, **kwargs):
-    #     baseuser = self.get_object()
-    #     self.perform_destroy(baseuser)
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-    #
-    # def perform_destroy(self, baseuser):
-    #     with transaction.atomic():
-    #         django_user = User.objects.filter(pk=baseuser.django_user_id)
-    #         baseuser.delete()
-    #         django_user.delete()
 
-
-# class BaseUsersSafeAPIViewSet(ListAPIView):
-#     queryset = BaseUsers.objects.all()
-#     serializer_class = BaseUsersSafeSerializer
-
-
+@transaction.atomic
 def registerPage(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -174,6 +109,7 @@ class ChangePasswordView(generics.UpdateAPIView):
         obj = self.request.user
         return obj
 
+    @transaction.atomic
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
@@ -189,8 +125,8 @@ class ChangePasswordView(generics.UpdateAPIView):
             self.object.save()
             # update the password in the BaseUsers table
             base_user = BaseUsers.objects.get(django_user=self.object)
-            base_user.password1 = serializer.data.get("new_password")
-            base_user.password2 = serializer.data.get("new_password")
+            base_user.password = serializer.data.get("new_password")
+            # base_user.password2 = serializer.data.get("new_password")
             base_user.save()
             response = {
                 'status': 'success',

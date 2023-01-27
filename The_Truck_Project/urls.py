@@ -5,7 +5,7 @@ from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
+from baseuser.views import BaseUsersAPIViewSet,\
     UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordView
 from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
