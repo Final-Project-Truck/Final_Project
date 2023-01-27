@@ -5,10 +5,12 @@ from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from baseuser.views import BaseUsersAPIViewSet, UserProfileAPIViewSet, \
-    CompanyProfileAPIViewSet, BaseUsersSafeAPIViewSet
-from baseuser.views import loginPage, logoutPage, home, registerPage
-from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet
+from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordView
+from baseuser.views import registerPage, loginPage, logoutPage, home
+from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
+    PostLikeAPIViewSet
+
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
@@ -46,6 +48,7 @@ router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
 router.register(r'messages', MessageViewSet)
+router.register(r'post_likes', PostLikeAPIViewSet)
 
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
@@ -76,4 +79,7 @@ urlpatterns = [
     path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
          name='message-detail'),
     path('api/v1/messages/', views.message_list, name='message-list'),
+    path('api/v1/change-password/', ChangePasswordView.as_view(),
+         name='change-password'),
 ]
+
