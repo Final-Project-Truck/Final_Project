@@ -1,5 +1,6 @@
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from company.models import Company
 
 type_choices = [
@@ -16,17 +17,65 @@ company_type = [
 
 
 class BaseUsers(models.Model):
-    username = models.CharField(max_length=200, null=True)
-    password1 = models.CharField(max_length=200, null=True)
-    password2 = models.CharField(max_length=200, null=True)
-    email = models.EmailField(max_length=200, null=True, unique=True)
-    date_created = models.DateTimeField(auto_now_add=True, null=True)
-    django_user = models.OneToOneField(User, on_delete=models.CASCADE,
-                                       related_name='baseuser')
+    username = models.CharField(max_length=200, unique=True)
+    password = models.CharField(max_length=200)
+    email = models.EmailField(max_length=200, unique=True)
+    date_created = models.DateTimeField(auto_now_add=True, null=True,
+                                        blank=True)  # todo
+    # check why it is not working
+    django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
     user_type = models.CharField(max_length=3, choices=type_choices)
 
     def __str__(self):
+
         return f'{self.username}'
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        # this part is for the put method
+
+        existing_user = User.objects.filter(email=self.email).first()
+        print(existing_user)
+        if existing_user:
+            # Delete the existing User instance
+            existing_user.delete()
+        if self.pk:
+            django_user = self.django_user
+            django_user.username = self.username
+            django_user.email = self.email
+            django_user.set_password(self.password)
+            django_user.save()
+            self.django_user = django_user
+            self.password = self.django_user.password
+        # this part is for the create or Post method
+        else:
+            django_user = User.objects.create_user(username=self.username,
+                                                   email=self.email,
+                                                   password=self.password)
+            self.django_user = django_user
+            self.password = self.django_user.password
+            # super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        django_user = User.objects.get(baseuser=self)
+        django_user.delete()
+        super().delete(*args, **kwargs)
+
+
+# class BaseUsers(models.Model):
+#     username = models.CharField(max_length=200, null=True)
+#     password1 = models.CharField(max_length=200, null=True)
+#     password2 = models.CharField(max_length=200, null=True)
+#     email = models.EmailField(max_length=200, null=True, unique=True)
+#     date_created = models.DateTimeField(auto_now_add=True, null=True)
+#     django_user = models.OneToOneField(User, on_delete=models.CASCADE,
+#                                        related_name='baseuser')
+#     user_type = models.CharField(max_length=3, choices=type_choices)
+#
+#     def __str__(self):
+#         return f'{self.username}'
 
 
 class UserProfile(models.Model):

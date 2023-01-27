@@ -18,7 +18,7 @@ class TestCompanyAPIViewSet(TestCase):
             username='ctname', password='ctname', email='ctname@gmail.com')
 
         cls.test_user = BaseUsers.objects.create(
-            username='ctname', password1='ctname', password2='ctname',
+            username='ctname', password='ctname',
             email='ctname@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',

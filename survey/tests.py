@@ -28,28 +28,28 @@ class TestSurveyAPIViewSet(TestCase):
              is_staff=True)
 
         cls.user = BaseUsers.objects.create(
-            id=1, username='name10', password1='name10', password2='name10',
+            id=1, username='name10', password='name10',
             email='name10@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
             django_user=cls.django_user)
 
         cls.user2 = BaseUsers.objects.create(
-            id=2, username='name11', password1='name11', password2='name11',
+            id=2, username='name11', password='name11',
             email='name11@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
             django_user=cls.django_user2)
 
         cls.company_user = BaseUsers.objects.create(
-            id=3, username='cname', password1='cname', password2='cname',
+            id=3, username='cname', password='cname',
             email='cname@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='com',
             django_user=cls.django_company_user)
 
         cls.admin = BaseUsers.objects.create(
-            id=10, username='admin', password1='12345', password2='12345',
+            id=10, username='admin', password='12345',
             email='admin@gmail.com',
             date_created=datetime.date.fromisocalendar,
             user_type='per',
@@ -253,18 +253,24 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(duplicate_post.data,
                          'Chosen Question is already added to the survey')
 
-    def test_if_user_can_update_survey_that_is_not_chosen(self):
+    def test_if_user_can_update_survey_that_is_not_chosen(self): #todo seams
+        # that this test i depending on the tests from the company or why is
+        # it failing when we run the survey test separately? the id=15 is
+        # not passed to the post , i doubt that the question does hav this id
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
         new_qsn = {'id': 15, 'survey': 301, 'question': 604}
-        self.client.post('/api/v1/survey_questions/', new_qsn)
+        response = self.client.post('/api/v1/survey_questions/', new_qsn)
+        # self.assertEqual(response.status_code,201)
         survey_qsn = self.client.get('/api/v1/survey_questions/15/')
+        # print(survey_qsn)
         survey_qsn.data['survey'] = 300
         update_post = self.client.put(
-            '/api/v1/survey_questions/15/', survey_qsn.data)
+             '/api/v1/survey_questions/15/', survey_qsn.data)
+        # print(update_post.data)
         self.assertEqual(
-            update_post.data, 'Edit only questions for chosen survey')
+             update_post.data, 'Edit only questions for chosen survey')
 
     def test_if_template_survey_qsn_can_be_deleted_from_survey(self):
         response = self.client.delete('/api/v1/survey_questions/701/')

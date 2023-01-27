@@ -30,16 +30,16 @@ class TestBaseUsersAPIViewSet(TestCase):
         cls.person_user = BaseUsers.objects.create(
             id=100,
             username='person',
-            password1='name1',
-            password2='name1', email='name1@gmail.com',
+            password='name1',
+            email='name1@gmail.com',
             date_created=datetime.date.fromisocalendar,
             django_user=cls.first_django_user, user_type='per')
 
         cls.company_user = BaseUsers.objects.create(
             id=101,
             username='company',
-            password1='name2',
-            password2='name2', email='name2@gmail.com',
+            password='name2',
+            email='name2@gmail.com',
             date_created=datetime.date.fromisocalendar,
             django_user=cls.second_django_user, user_type='com')
 
@@ -158,7 +158,7 @@ class TestBaseUsersAPIViewSet(TestCase):
         company_user = BaseUsers.objects.get(id=101)
         # log in as a company user
         self.client.login(username=company_user.username,
-                          password=company_user.password1)
+                          password=company_user.password)
         data = {"base_user": 101, "company": 500,
                 "website": "https://www.google.com/",
                 "number_of_employees": 100,
