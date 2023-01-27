@@ -3,7 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from .models import BaseUsers, UserProfile, CompanyProfile
 
-@trans
+#todo transaction
 @receiver(post_save, sender=BaseUsers)
 def create_profile(sender, instance, created, **kwargs):
     if created:

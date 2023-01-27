@@ -6,8 +6,8 @@ from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
 from baseuser.views import BaseUsersAPIViewSet, UserProfileAPIViewSet, \
-    CompanyProfileAPIViewSet #, BaseUsersSafeAPIViewSet
-from baseuser.views import  loginPage, logoutPage, home ,registerPage
+    CompanyProfileAPIViewSet, BaseUsersSafeAPIViewSet
+from baseuser.views import loginPage, logoutPage, home, registerPage
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
