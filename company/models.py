@@ -28,3 +28,25 @@ class JobPostComment(models.Model):
     author = models.ForeignKey("baseuser.BaseUsers", on_delete=models.CASCADE)
     text = models.TextField()
     date_created = models.DateTimeField(auto_now_add=True, null=True)
+
+
+class PostLike(models.Model):
+    """
+    This model represents a user's like on a job post.
+    A user can only like a post once.
+    """
+    user = models.ForeignKey("baseuser.BaseUsers",
+                             on_delete=models.CASCADE,
+                             related_name='post_likes')
+    """
+    A foreign key to the user who liked the post.
+    The related name is used to access the user's likes.
+    """
+    post = models.ForeignKey(JobPosting,
+                             on_delete=models.CASCADE,
+                             related_name='likes')
+    """
+    A foreign key to the post that was liked.
+    The related name is used to access the likes of a post.
+    """
+    created = models.DateTimeField(auto_now_add=True)
