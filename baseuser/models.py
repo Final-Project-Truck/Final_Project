@@ -34,6 +34,7 @@ class BaseUsers(models.Model):
     def save(self, *args, **kwargs):
         # this part is for the put method
 
+
         existing_user = User.objects.filter(email=self.email).first()
         print(existing_user)
         # if existing_user:
@@ -47,6 +48,11 @@ class BaseUsers(models.Model):
                 #     existing_user.email = ''
 
         # this part is for the put method and updating the user
+
+
+            # Delete the existing User instance
+            # existing_user.delete()
+
         if self.pk:
             django_user = self.django_user
             django_user.username = self.username
