@@ -20,10 +20,10 @@ def generate_report(request):
         companies = Company.objects.all()
         x = []
         y = []
-        for i in range(0, len(companies) -1):
-             x.append(companies[i].name)
-        for i in range(0, len(surveys) - 1):
-           # x.append(surveys[i]['company_id'])
+        for i in range(0, len(companies)-1):
+            x.append(companies[i].name)
+        for i in range(0, len(surveys)-1):
+            # x.append(surveys[i]['company_id'])
             y.append(surveys[i]['count'])
             ''' convert the image to byte array, encode it to base64 and embed
                     into template'''
