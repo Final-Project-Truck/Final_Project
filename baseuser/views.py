@@ -1,20 +1,22 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import transaction
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from django.shortcuts import render, redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from rest_framework import status, filters, generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
 from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
-from baseuser.serializers import BaseUsersSerializer, UserProfileSerializer,\
+from baseuser.serializers import BaseUsersSerializer, UserProfileSerializer, \
     CompanyProfileSerializer, ChangePasswordSerializer
 
 
@@ -23,24 +25,45 @@ class BaseUsersAPIViewSet(ModelViewSet):
     serializer_class = BaseUsersSerializer
 
 
-@transaction.atomic
 def registerPage(request):
     if request.user.is_authenticated:
         return redirect('home')
     else:
         form = BaseUsersForm(request.POST or None)
+
         if request.method == 'POST':
             form = BaseUsersForm(request.POST)
             if form.is_valid():
+                username = form.cleaned_data['username']
+                email = form.cleaned_data['email']
+                password = form.cleaned_data['password1']
+                user_type = form.cleaned_data['user_type']
                 with transaction.atomic():
                     djangouser, created = User.objects.get_or_create(
-                        username=form.cleaned_data['username'])
+                        username=username,
+                        defaults={'email': email, 'password':
+                            make_password(password)})
                     if created:
-                        djangouser.email = form.cleaned_data['email']
-                        djangouser.set_password(form.cleaned_data['password'])
-                        djangouser.save()
-                        BaseUsers.objects.create(**form.cleaned_data,
-                                                 django_user=djangouser)
+                        BaseUsers.objects.create(
+                            username=username,
+                            email=email,
+                            password=password,
+                            django_user=djangouser)
+
+
+                        # django_user=
+                        # djangouser.email = form.cleaned_data['email']
+                        # djangouser.set_password(form.cleaned_data['password1'])
+                        # djangouser.save()
+                        # BaseUsers.objects.create(     # todo either change this to
+                        #     # remove the unpacking data
+                        #     # or you resolve it in the
+                        #     # form **form.cleaned_data
+                        #     username=form.cleaned_data['username'],
+                        #     password=djangouser.password,
+                        #     email=djangouser.email,
+                        #     django_user=djangouser)
+
                         messages.success(request,
                                          'Account was created for ' +
                                          djangouser.username)
@@ -48,7 +71,8 @@ def registerPage(request):
                             'Register Completed',  # Change your Subject
                             'Thank you for joining our Website',
                             # Change your message
-                            'struckproject@gmail.com',
+                            'struckproject@gmail.com',  # todo change this to
+                            # a varaible from the settings
                             # Put the email your going to use
                             [djangouser.email],
                             fail_silently=False
@@ -63,7 +87,8 @@ def forget_password(request):
     if request.method == 'POST':
         email = request.POST['email']
         try:
-            user = User.objects.get(email=email)
+            user = User.objects.get(email=email)  # todo this should be
+            # changed to get by username since the user email is not unique
             if user.is_active:
                 token = default_token_generator.make_token(user)
                 x = reverse("password_reset_confirm",

@@ -13,7 +13,7 @@ class BaseUsersSerializer(ModelSerializer):
     class Meta:
         model = BaseUsers
         exclude = ['django_user']
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {'password': {'write_only': True}}  # this works
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -30,7 +30,8 @@ class CompanyProfileSerializer(ModelSerializer):
         exclude = ['base_user']
 
 
-class ChangePasswordSerializer(serializers.Serializer):
+class ChangePasswordSerializer(serializers.Serializer): #todo check the
+    # underlined tipp Class ChangePasswordSerializer must implement all abstract methods
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)
 

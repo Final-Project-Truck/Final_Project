@@ -1,7 +1,62 @@
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.db import models, transaction
+from django.db.models import Q
+
 from company.models import Company
+
+
+class BaseUserQuerySet(models.QuerySet):
+    """
+    Custom QuerySet for the BaseUsers model.
+    """
+
+    def create_multiple(self, objs):
+        """
+        Create multiple BaseUsers instances in one go.
+
+        Args:
+            objs (List[BaseUsers]): List of BaseUsers instances to be created.
+        """
+        for obj in objs:
+            obj.save()
+        return self
+
+    def delete(self):
+        """
+        Delete multiple BaseUsers instances in one go.
+
+        Also deletes the related User instances.
+        """
+        for obj in self:
+            obj.delete()
+        return super(BaseUserQuerySet, self).delete()
+
+    def update(self, *args, **kwargs):
+        """
+        Update multiple BaseUsers instances in one go.
+
+        Also updates the related User instances.
+        """
+        for obj in self:
+            # update related user's fields
+            obj.django_user.username = kwargs.get('username',
+                                                  obj.django_user.username)
+            obj.django_user.email = kwargs.get('email', obj.django_user.email)
+            password = kwargs.get('password')
+            if password:
+                obj.django_user.set_password(password)
+                obj.password = obj.django_user.password  # todo check why the
+                # password is not hashed in baseusers
+                obj.django_user.save()
+                obj.save()
+            # update other fields for baseuser model
+            for field, value in kwargs.items():
+                setattr(obj, field, value)
+            obj.django_user.save()
+            obj.save()
+        return super(BaseUserQuerySet, self).update(*args, **kwargs)
+
 
 type_choices = [
     ('per', 'Person'),
@@ -16,173 +71,107 @@ company_type = [
 ]
 
 
-class BaseUsersManager(models.Manager):
-    @transaction.atomic
-    def update(self, **kwargs):  #todo check why t is not working , this is for the BaseUsers.objects.filter(id=21).update(username='test')
-        baseuser_id = kwargs.pop('pk')
-        baseuser = BaseUsers.objects.get(id=baseuser_id)
-        # Retrieve the related User instance
-        django_user = User.objects.get(baseuser_id=baseuser_id)
-        # Update the related User instance
-        django_user.username = kwargs.get('username')
-        django_user.email = kwargs.get('email')
-        django_user.save()
-        # Update the BaseUsers instance
-        super().filter(pk=baseuser_id).update(**kwargs)
-#
-#     @transaction.atomic
-#     def update(self, instance, **kwargs):
-#         # # Hash the password before updating
-#         # kwargs['password'] = make_password(
-#         #     kwargs.get('password'))
-#
-#         # Update the related User instance
-#         instance.django_user.username = kwargs['username']
-#
-#         instance.django_user.email = kwargs['email']
-#
-#         instance.django_user.set_password(kwargs['password'])
-#         instance.django_user.save()
-#
-#         # Update the BaseUsers instance
-#         instance.username = kwargs['username']
-#         # instance.last_name = kwargs.get('last_name', instance.last_name)
-#         instance.password = instance.django_user.password
-#         # instance.save()
-#         instance.save(**kwargs)
-#
-#         # return instance
-#
-#     # def create(self, username, email, password, user_type):
-#         #     django_user = User.objects.create_user(username=username, email=email, password=password)
-#         #     base_user = self.create(username=username, email=email,
-#         #                             password=make_password(password),
-#         #                             user_type=user_type,
-#         #                             django_user_id=django_user.id)
-#         #     return base_user
-#     @transaction.atomic
-#         # def delete(self, *args, **kwargs):  # todo , it is working in the
-#         #     # DELETE request and it works for instance.delete() but check how to
-#         #     # make it work when performing model.objects.filter(id=id).delete()
-#         #     django_user = User.objects.get(username=self.username)
-#         #     django_user.delete()
-#         #     super().delete(*args, **kwargs)
-#
-#     def delete(self, instance):
-#         # Get the 'django_user' foreign key
-#         django_user = instance.django_user
-#         # Delete the related 'User' instance
-#         django_user.delete()
-#         # Delete the 'BaseUsers' instance
-#         # instance.delete()
-
-# class BaseUsersManager(models.Manager):
-#     @transaction.atomic
-#     def update(self, **kwargs):  #todo check why t is not working , this is for the BaseUsers.objects.filter(id=21).update(username='test')
-#         baseuser_id = kwargs.pop('pk')
-#         baseuser = BaseUsers.objects.get(id=baseuser_id)
-#         # Retrieve the related User instance
-#         django_user = User.objects.get(baseuser_id=baseuser_id)
-#         # Update the related User instance
-#         django_user.username = kwargs.get('username')
-#         django_user.email = kwargs.get('email')
-#         django_user.save()
-#         # Update the BaseUsers instance
-#         super().filter(pk=baseuser_id).update(**kwargs)
-#
-#         # def create(self, username, email, password, user_type):
-#         #     django_user = User.objects.create_user(username=username, email=email, password=password)
-#         #     base_user = self.create(username=username, email=email,
-#         #                             password=make_password(password),
-#         #                             user_type=user_type,
-#         #                             django_user_id=django_user.id)
-#         #     return base_user
-#         @transaction.atomic
-#         def delete(self, *args, **kwargs):  # todo , it is working in the
-#             # DELETE request and it works for instance.delete() but check how to
-#             # make it work when performing model.objects.filter(id=id).delete()
-#             django_user = User.objects.get(username=self.username)
-#             django_user.delete()
-#             super().delete(*args, **kwargs)
-
 class BaseUsers(models.Model):
     username = models.CharField(max_length=200, unique=True)
     password = models.CharField(max_length=200)
     email = models.EmailField(max_length=200, unique=True)
     date_created = models.DateTimeField(auto_now_add=True, null=True,
-                                        blank=True)  # todo
-    # check why it is not working
-    django_user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='baseuser')
+                                        blank=True)
+    django_user = models.OneToOneField(User, on_delete=models.CASCADE,
+                                       related_name='baseuser')
     user_type = models.CharField(max_length=3, choices=type_choices)
+    objects = BaseUserQuerySet.as_manager()
 
     def __str__(self):
-
+        """
+        String representation of the BaseUsers instance.
+        """
         return f'{self.username}'
 
-    @transaction.atomic
+    @transaction.atomic()
     def save(self, *args, **kwargs):
-        # this part is for the put method
+        """
+        Save method for the BaseUsers model.
+        The decorator @transaction.atomic() ensures that all database
+        operations within the method are executed within a single
+        transaction. This is important because we want to ensure that all
+        operations related to creating or updating the BaseUser and User
+        models are atomic, meaning that they either all succeed or all fail.
+        """
+        # Hash the password before saving it
+        self.password = make_password(self.password)
 
+        existing_django_users = User.objects.filter(Q(username=self.username) |
+                                                    Q(email=self.email))
+        """
+        Check if a User with the same username or email already exists.
+        If yes, relate the existing User instance to the BaseUsers and
+        update the fields.
+        If no, create a new User with the same fields as the BaseUsers model.
+        """
+        if existing_django_users:
+            # relate the existing User instance to the baseuser and update the
+            # fields
+            django_user = existing_django_users.first()
+            # check if there are any other existing User instances
+            other_users = existing_django_users.exclude(id=self.django_user.id)
+            try:
+                base_user = BaseUsers.objects.get(django_user=django_user)
+                base_user.username = self.username
+                django_user.username = self.username
+                base_user.email = self.email
+                django_user.email = self.email
+                base_user.password = self.password
+                django_user.password = self.password
+                django_user.save()
+                # delete the other User instances which have the same
+                # username or same email
+                other_users.delete()
 
-        existing_user = User.objects.filter(email=self.email).first()
-        print(existing_user)
-        if existing_user: # and existing_user.baseuser:#todo
-            existing_user.email = ''
-        elif existing_user and not existing_user.baseuser:#todo check the
-            # case where the django user with this email already exists and
-            # whether it is related with a baseuser or no
-            existing_user.delete()
+            except BaseUsers.DoesNotExist:
+                # check if any of the other existing User instances are related
+                # to the baseuser
+                for other_user in other_users:
+                    try:
+                        BaseUsers.objects.get(django_user=other_user)
+                        self.django_user.username = self.username
+                        self.django_user.email = self.email
+                        self.django_user.password = self.password
+                        self.django_user.save()
+                    except BaseUsers.DoesNotExist:
+                        # delete the other User instance, if it is not related
+                        # to the baseuser,
+                        other_user.delete()
         else:
-            django_user = User.objects.create_user(username=self.username,
-                                                   email=self.email,
-                                                   password=self.password)
-            self.django_user = django_user
-            self.password = self.django_user.password
-                # if existing_user.username != self.username:
-                #
-                #     """ Delete the email if a user exists with it already to make the
-                #     # email in the user model unique"""
-                #     existing_user.email = ''
+            # no existing User with the same username or email
 
-        # this part is for the put method and updating the user
-
-
-            # Delete the existing User instance
-            # existing_user.delete()
-
-        if self.pk:
-            django_user = self.django_user
-            django_user.username = self.username
-            django_user.email = self.email
-            django_user.set_password(self.password)
-            django_user.save()
-            self.django_user = django_user
-            self.password = django_user.password
-        # this part is for the create or Post method
-        else:pass
-
-            # super().save(*args, **kwargs)
+            # the update part
+            if self.pk:
+                django_user = self.django_user
+                django_user.username = self.username
+                django_user.email = self.email
+                django_user.password = self.password
+                django_user.save()
+                self.django_user = django_user
+            # the create part
+            else:
+                # create a new User with the same fields as the BaseUsers model
+                self.django_user = User.objects.create(
+                    username=self.username,
+                    email=self.email,
+                    password=self.password)
+        # save the self using the save method of the Model
         super().save(*args, **kwargs)
 
-    @transaction.atomic
+    def create_multiple(self, objs):
+        self.objects.create_multiple(objs)
+        super().bulk_create(objs)
+
+    @transaction.atomic()
     def delete(self, *args, **kwargs):
-        django_user = User.objects.get(baseuser=self)
-        django_user.delete()
+        if self.django_user:
+            self.django_user.delete()
         super().delete(*args, **kwargs)
-
-
-# class BaseUsers(models.Model):
-#     username = models.CharField(max_length=200, null=True)
-#     password1 = models.CharField(max_length=200, null=True)
-#     password2 = models.CharField(max_length=200, null=True)
-#     email = models.EmailField(max_length=200, null=True, unique=True)
-#     date_created = models.DateTimeField(auto_now_add=True, null=True)
-#     django_user = models.OneToOneField(User, on_delete=models.CASCADE,
-#                                        related_name='baseuser')
-#     user_type = models.CharField(max_length=3, choices=type_choices)
-#
-#     def __str__(self):
-#         return f'{self.username}'
 
 
 class UserProfile(models.Model):

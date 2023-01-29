@@ -10,7 +10,8 @@ class BaseUsersForm(forms.ModelForm):
 
     class Meta:
         model = BaseUsers
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ['username', 'email', 'user_type']
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
