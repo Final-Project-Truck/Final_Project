@@ -10,7 +10,7 @@ from baseuser.models import CompanyProfile
 from company.models import JobPosting, Company, JobPostComment, PostLike
 from company.serializers import CompanySerializer, JobPostingSerializer, \
     JobPostCommentSerializer, PostLikeSerializer
-from survey.models import Survey, Question, Option, SurveyQuestion
+# from survey.models import Survey, Question, Option, SurveyQuestion
 
 
 class CompanyAPIViewSet(ModelViewSet):
@@ -20,81 +20,73 @@ class CompanyAPIViewSet(ModelViewSet):
     serializer_class = CompanySerializer
     permission_classes = [IsAuthenticated]
 
-    def create(self, request, *args, **kwargs):
-        serializer = CompanySerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        with transaction.atomic():
-            """Create Company"""
-            company = Company.objects.create(**serializer.data)
-            title = f"{company.name}'s Template Survey "
-            """Create Company Survey"""
-            survey = Survey.objects.create(
-                title=title, is_active=False, company=company)
-            question_1 = f"{company.name}'s Question 1"
-            question_2 = f"{company.name}'s Question 2"
-            question_3 = f"{company.name}'s Question 3"
-
-            text_1 = f"{question_1} True"
-            text_2 = f"{question_1} False"
-            text_3 = f"{question_2} Strongly Agree"
-            text_4 = f"{question_2} Agree"
-            text_5 = f"{question_2} Neutral"
-            text_6 = f"{question_2} Disagree"
-            text_7 = f"{question_2} Strongly Disagree"
-
-            """Template Question 1"""
-            template_question_1 = Question.objects.create(
-                prompt=question_1, type='cho', template_question=True)
-            template_question_1.save()
-            template_question_1_option_1 = Option.objects.create(
-                question=template_question_1, text=text_1)
-            template_question_1_option_1.save()
-            template_question_1_option_2 = Option.objects.create(
-                question=template_question_1, text=text_2)
-            template_question_1_option_2.save()
-            # related to template question 1
-
-            """Template Question 2"""
-            template_question_2 = Question.objects.create(
-                prompt=question_2, type='cho', template_question=True)
-            template_question_2.save()
-            template_question_2_option_1 = Option.objects.create(
-                question=template_question_2, text=text_3)
-            template_question_2_option_1.save()
-            template_question_2_option_2 = Option.objects.create(
-                question=template_question_2, text=text_4)
-            template_question_2_option_2.save()
-            template_question_2_option_3 = Option.objects.create(
-                question=template_question_2, text=text_5)
-            template_question_2_option_3.save()
-            template_question_2_option_4 = Option.objects.create(
-                question=template_question_2, text=text_6)
-            template_question_2_option_4.save()
-            template_question_2_option_5 = Option.objects.create(
-                question=template_question_2, text=text_7)
-            template_question_2_option_5.save()
-
-            """Template Question 3"""
-            template_question_3 = Question.objects.create(
-                prompt=question_3, type='txt', template_question=True)
-            template_question_3.save()
-
-            """Combine Template Questions with Company Survey"""
-            survey_question_1 = SurveyQuestion.objects.create(
-                survey=survey, question=template_question_1)
-            survey_question_1.save()
-            survey_question_2 = SurveyQuestion.objects.create(
-                survey=survey, question=template_question_2)
-            survey_question_2.save()
-            survey_question_3 = SurveyQuestion.objects.create(
-                survey=survey, question=template_question_3)
-            survey_question_3.save()
-
-            """Change is_active to True to activate survey"""
-            Survey.objects.filter(pk=survey.id).update(is_active=True)
-
-            return Response(CompanySerializer(company).data, status=201)
+    # def create(self, request, *args, **kwargs):
+    #     serializer = CompanySerializer(data=request.data)
+    #     serializer.is_valid(raise_exception=True)
+    #
+    #     with transaction.atomic():
+    #         """Create Company"""
+    #         company = Company.objects.create(**serializer.data)
+    #         title = f"{company.name}'s Template Survey "
+    #         """Create Company Survey"""
+    #         survey = Survey.objects.create(
+    #             title=title, is_active=False, company=company)
+    #         question_1 = f"{company.name}'s Question 1"
+    #         question_2 = f"{company.name}'s Question 2"
+    #         question_3 = f"{company.name}'s Question 3"
+    #
+    #         """Template Question 1"""
+    #         template_question_1 = Question.objects.create(
+    #             prompt=question_1, type='cho', template_question=True)
+    #         template_question_1.save()
+    #         template_question_1_option_1 = Option.objects.create(
+    #             question=template_question_1, text="True")
+    #         template_question_1_option_1.save()
+    #         template_question_1_option_2 = Option.objects.create(
+    #             question=template_question_1, text="False")
+    #         template_question_1_option_2.save()
+    #         # related to template question 1
+    #
+    #         """Template Question 2"""
+    #         template_question_2 = Question.objects.create(
+    #             prompt=question_2, type='cho', template_question=True)
+    #         template_question_2.save()
+    #         template_question_2_option_1 = Option.objects.create(
+    #             question=template_question_2, text="Strongly Agree")
+    #         template_question_2_option_1.save()
+    #         template_question_2_option_2 = Option.objects.create(
+    #             question=template_question_2, text="Agree")
+    #         template_question_2_option_2.save()
+    #         template_question_2_option_3 = Option.objects.create(
+    #             question=template_question_2, text="Neutral")
+    #         template_question_2_option_3.save()
+    #         template_question_2_option_4 = Option.objects.create(
+    #             question=template_question_2, text="Disagree")
+    #         template_question_2_option_4.save()
+    #         template_question_2_option_5 = Option.objects.create(
+    #             question=template_question_2, text="Strongly Disagree")
+    #         template_question_2_option_5.save()
+    #
+    #         """Template Question 3"""
+    #         template_question_3 = Question.objects.create(
+    #             prompt=question_3, type='txt', template_question=True)
+    #         template_question_3.save()
+    #
+    #         """Combine Template Questions with Company Survey"""
+    #         survey_question_1 = SurveyQuestion.objects.create(
+    #             survey=survey, question=template_question_1)
+    #         survey_question_1.save()
+    #         survey_question_2 = SurveyQuestion.objects.create(
+    #             survey=survey, question=template_question_2)
+    #         survey_question_2.save()
+    #         survey_question_3 = SurveyQuestion.objects.create(
+    #             survey=survey, question=template_question_3)
+    #         survey_question_3.save()
+    #
+    #         """Change is_active to True to activate survey"""
+    #         Survey.objects.filter(pk=survey.id).update(is_active=True)
+    #
+    #         return Response(CompanySerializer(company).data, status=201)
 
     def update(self, request, *args, **kwargs):
         company = self.get_object()

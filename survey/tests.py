@@ -61,6 +61,9 @@ class TestSurveyAPIViewSet(TestCase):
         cls.company2 = Company.objects.create(
             id=502, name='peter2', location='here', description='text')
 
+        cls.company3 = Company.objects.create(
+            id=503, name='peter3', location='here', description='text')
+
         cls.template_survey = Survey.objects.create(
             id=200, title='Template Survey', is_active=False, creator_id=None,
             company_id=cls.company.id, created_at='2022-12-12')
@@ -140,7 +143,10 @@ class TestSurveyAPIViewSet(TestCase):
         cls.user.clean()
         cls.user2.clean()
         cls.company.clean()
+        cls.company2.clean()
+        cls.company3.clean()
         cls.template_survey.clean()
+        cls.template_survey_2.clean()
         cls.survey1.clean()
         cls.survey2.clean()
         cls.template_question_1.clean()
@@ -166,10 +172,34 @@ class TestSurveyAPIViewSet(TestCase):
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
         new_survey = {"title": "'new_survey'", "is_active": False,
-                      "creator": 2, "company": 502, "created_at":
+                      "creator": 2, "company": 503, "created_at":
                           "2022-12-12"}
         response = self.client.post('/api/v1/survey/', new_survey)
         self.assertEqual(response.status_code, 201)
+
+    # def test_whether_the_company_have_a_template_survey(self):
+    #     existing_company = Company.objects.first()
+    #     print(existing_company.id)
+    #     related_surveys = Survey.objects.filter(
+    #     company_id=existing_company.id)
+    #     print(related_surveys)
+    #     response = self.client.get('api/v1/companies/')
+    #     response = self.client.get('/api/v1/companies/')
+    #     self.assertEqual(response.status_code, 200)
+    #     print(response.status_code)
+    #
+    #     company = response.data
+    #     print(company)
+    #     id=company[0]
+    #     print(id['id'])
+    #     print(id)
+    #     company_template_survey=Survey.objects.get(company_id=company[0]['id'],
+    #                                                creator_id=None)
+    #     print(company_template_survey)
+    #     company_template_survey = Survey.objects.get(
+    #         company_id=501,
+    #         creator_id=None)
+    #     print(company_template_survey)
 
     def test_if_mult_surveys_created_for_same_com_returns_error_message(self):
         self.tearDown()
@@ -206,8 +236,11 @@ class TestSurveyAPIViewSet(TestCase):
 
     def test_survey_temp_quests_add_to_survey_when_user_creates_survey(self):
         new_survey = {"title": "'Survey 2'", "is_active": False,
-                      "creator": 2, "company": 502, "created_at":
+                      "creator": 2, "company": 503, "created_at":
                           "2022-12-12"}
+        template_survey = Survey.objects.filter(
+            company_id=503, creator_id=None)
+        print(f"templateSurvey of company 502 is {template_survey}")
         response = self.client.post('/api/v1/survey/', new_survey)
         template_questions = self.client.get('/api/v1/survey_questions/')
         count = 0
@@ -257,12 +290,21 @@ class TestSurveyAPIViewSet(TestCase):
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
-        new_qsn = {'id': 15, 'survey': 301, 'question': 604}
-        self.client.post('/api/v1/survey_questions/', new_qsn)
-        survey_qsn = self.client.get('/api/v1/survey_questions/15/')
+
+        new_qsn = {'survey': 301, 'question': 604}
+        response_1 = self.client.post('/api/v1/survey_questions/', new_qsn)
+        qsn_id = response_1.data['id']
+
+        # survey_questions_list = self.client.get('/api/v1/survey_questions/')
+        # print(survey_questions_list.data)
+        # print(SurveyQuestion.objects.last().id)
+        survey_qsn = self.client.get(f'/api/v1/survey_questions/{qsn_id}/')
+        # print(survey_qsn)
+        # print(survey_qsn.data)
         survey_qsn.data['survey'] = 300
         update_post = self.client.put(
-            '/api/v1/survey_questions/15/', survey_qsn.data)
+            f'/api/v1/survey_questions/{qsn_id}/', survey_qsn.data)
+        # print(update_post)
         self.assertEqual(
             update_post.data, 'Edit only questions for chosen survey')
 

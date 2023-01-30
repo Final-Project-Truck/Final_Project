@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from authentication.permissions import IsOwner, IsSurveyOwner, \
-    IsSubmissionOwner, IsSurveySubmissionOwner
+    IsSubmissionOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
@@ -76,15 +76,15 @@ class SurveyAPIViewSet(ModelViewSet):
 
                         """insert template survey questions
                          into new created survey"""
-                        survey_question_1 = SurveyQuestion.objects.create(
+                        SurveyQuestion.objects.create(
                             survey=new_survey, question=template_question_1)
-                        survey_question_1.save()
-                        survey_question_2 = SurveyQuestion.objects.create(
+                        # survey_question_1.save()
+                        SurveyQuestion.objects.create(
                             survey=new_survey, question=template_question_2)
-                        survey_question_2.save()
-                        survey_question_3 = SurveyQuestion.objects.create(
+                        # survey_question_2.save()
+                        SurveyQuestion.objects.create(
                             survey=new_survey, question=template_question_3)
-                        survey_question_3.save()
+                        # survey_question_3.save()
 
                         # self.generate_report()
                     return Response(SurveySerializer(new_survey).data,
@@ -207,9 +207,12 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
                 survey_id=survey,
                 question_id=question)
             if not survey_question:
-                SurveyQuestion.objects.create(survey_id=survey,
-                                              question_id=question)
-                return Response(serializer.data, status=201)
+                survey_question = SurveyQuestion.objects.create(
+                    survey_id=survey,
+                    question_id=question)
+
+                return Response(SurveyQuestionSerializer(survey_question).data,
+                                status=201)
             else:
                 return Response(
                     'Chosen Question is already added to the survey')
@@ -232,6 +235,10 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             if serializer.validated_data['survey'].id is not \
                     survey_question.survey_id:
                 return Response('Edit only questions for chosen survey')
+                # todo this can not happen since he is only allwoed to create
+                # one survey per company and only if he is creator he will
+                # have permission, so the response would be permission
+                # denied check the alternative testcase
             elif serializer.data['survey'] == survey_question.survey_id:
                 SurveyQuestion.objects.filter(id=survey_question.id,
                                               survey_id=survey_chosen.id).\
@@ -306,7 +313,7 @@ class OptionAPIViewSet(ModelViewSet):
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAuthenticated, IsSurveySubmissionOwner]
+    permission_classes = [IsAuthenticated, IsSurveyOwner]
 
     '''
     Create a submission only if the survey chosen by user is active.
@@ -388,13 +395,16 @@ class SubmissionAPIViewSet(ModelViewSet):
             text = False
 
         if choices and text and serializer.validated_data['survey'].id == \
-                submission_survey.survey_id and not \
-                submission_survey.is_complete:
+                submission_survey.survey_id:
             Submission.objects.filter(id=submission_survey.id).update(
                 survey_id=serializer.validated_data['survey'],
                 # created_at=serializer.validated_data['created_at'],
                 is_complete=serializer.validated_data['is_complete'],
                 submitter_id=request.user.baseuser.id)
+
+            # ''' Generate report on submission of survey'''
+            # if serializer.validated_data['is_complete']:
+            #     self.generate_report()
 
             return Response('Survey updated')
         else:
@@ -440,27 +450,19 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
         survey_question = SurveyQuestion.objects.filter(
             question_id=question, survey_id=survey_chosen.id)
 
-        submitted_question = AnswerChoice.objects.filter(
-            submission_id=submission,
-            question_id=serializer.validated_data['question'])
-
         if survey_chosen.is_active and not survey_submission.is_complete:
-            if not submitted_question:
-                if survey_question:
-                    question_chosen = Question.objects.get(id=question)
+            if survey_question:
+                question_chosen = Question.objects.get(id=question)
 
-                    if question_chosen.type == 'cho':
-                        AnswerChoice.objects.create(submission_id=submission,
-                                                    question_id=question,
-                                                    option_id=option)
-                    else:
-                        return Response('Choose valid question')
-                    return Response(serializer.data, status=201)
+                if question_chosen.type == 'cho':
+                    AnswerChoice.objects.create(submission_id=submission,
+                                                question_id=question,
+                                                option_id=option)
                 else:
-                    return Response(
-                        'Chosen question is not available in survey')
+                    return Response('Choose valid question')
+                return Response(serializer.data, status=201)
             else:
-                return Response('Question is already answered')
+                return Response('Chosen question is not available in survey')
         else:
             return Response(
                 'Survey is either not active or already submitted')

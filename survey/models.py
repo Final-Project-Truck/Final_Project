@@ -1,8 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
-from baseuser.models import BaseUsers
-from company.models import Company
+
+# from company.models import Company
 
 # from django.contrib.auth.models import User
 
@@ -10,14 +10,14 @@ question_type = [('txt', 'Text'),
                  ('cho', 'Choice')]
 
 
-# todo create template survey?
 class Survey(models.Model):
     """A survey created by a user."""
 
     title = models.CharField(max_length=64)
     is_active = models.BooleanField(default=False)
-    creator = models.ForeignKey(BaseUsers, on_delete=models.CASCADE, null=True)
-    company = models.ForeignKey(Company, on_delete=models.CASCADE)
+    creator = models.ForeignKey('baseuser.BaseUsers',
+                                on_delete=models.CASCADE, null=True)
+    company = models.ForeignKey('company.Company', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     updated_at = models.DateTimeField(auto_now_add=True, null=True)
 
@@ -59,7 +59,8 @@ class Submission(models.Model):
                                related_name='survey_submission')
     created_at = models.DateTimeField(default=timezone.now)
     is_complete = models.BooleanField(default=False)
-    submitter = models.ForeignKey(BaseUsers, on_delete=models.CASCADE)
+    submitter = models.ForeignKey('baseuser.BaseUsers',
+                                  on_delete=models.CASCADE)
 
     def __str__(self):
         return f'{self.submitter} made submission to {self.survey}'
