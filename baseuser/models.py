@@ -6,6 +6,16 @@ from django.db.models import Q
 from company.models import Company
 
 
+# todo , it is necessary to create a signal with the User as reciever to
+# assure the other way around and control the email sending and the
+# permissions to change some fields
+
+# class BaseUsersManager(models.Manager):
+#     def normalize_email(self, email):
+#         # your implementation here
+#         return email.lower()
+
+
 class BaseUserQuerySet(models.QuerySet):
     """
     Custom QuerySet for the BaseUsers model.
@@ -47,7 +57,12 @@ class BaseUserQuerySet(models.QuerySet):
             if password:
                 obj.django_user.set_password(password)
                 obj.password = obj.django_user.password  # todo check why the
-                # password is not hashed in baseusers
+                # password is not hashed in baseusers---todo check if it is
+                #  resolved after changing the save
+                # todo check the query : BaseUsers.objects.create(
+                #  username='user4', email='user3@example.com',
+                #  password='password') in the shell, it was throwing
+                #  errors, capture this error in the serializer
                 obj.django_user.save()
                 obj.save()
             # update other fields for baseuser model

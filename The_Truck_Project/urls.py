@@ -5,8 +5,9 @@ from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 
-from baseuser.views import BaseUsersAPIViewSet,\
-    UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordView
+from baseuser.views import BaseUsersAPIViewSet, \
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordAPIView, \
+    TokenAuthenticationAPIView
 from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
     PostLikeAPIViewSet
@@ -19,6 +20,18 @@ from survey.views import SurveyQuestionAPIViewSet
 from analytics.views import generate_report
 from chat import views
 from chat.views import MessageViewSet
+# from django.urls import re_path
+
+# base_user_list = BaseUsersAPIViewSet.as_view({
+#     'post': 'register_person',
+# })
+#
+# base_user_list = BaseUsersAPIViewSet.as_view({
+#     'post': 'register_company',
+# })
+# base_user_list = BaseUsersAPIViewSet.as_view({
+#     'patch': 'change_password'
+# })
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -55,8 +68,19 @@ urlpatterns = [
          name='schema-swagger-ui'),
     path('', home, name="home"),
     path('api-auth/', include('rest_framework.urls')),
+    path('authenticate/', TokenAuthenticationAPIView.as_view(),
+         name='authenticate'),
+
     path('api/v1/', include(router.urls), name="api"),
-    # path('list_users/', BaseUsersSafeAPIViewSet.as_view()),
+    # todo check which apraoch is more compatible with restfull api
+    #  without the following re path , the default path for register and
+    #  change password (as actions) will be # api/v1/baseuser/register_person
+    #  api/v1/baseuser/<pk>/change_password
+    # re_path(r'^register_person/$', base_user_list, name='register_person'),
+    # re_path(r'^register_company/$', base_user_list, name='register_company'),
+    # re_path(r'^(?P<pk>[0-9]+)/change_password/$', base_user_list,
+    #         name='change_password'),
+
     path('admin/', admin.site.urls),
     path('registerPage/', registerPage, name="registerPage"),
     path('loginPage/', loginPage, name="loginPage"),
@@ -79,7 +103,6 @@ urlpatterns = [
     path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
          name='message-detail'),
     path('api/v1/messages/', views.message_list, name='message-list'),
-    path('api/v1/change-password/', ChangePasswordView.as_view(),
+    path('api/v1/change-password/', ChangePasswordAPIView.as_view(),
          name='change-password'),
 ]
-

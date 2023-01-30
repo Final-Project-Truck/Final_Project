@@ -7,6 +7,8 @@ from company.models import Company
 from survey.models import Survey, Question, SurveyQuestion
 
 
+# todo add testcases for User registration and authentication
+
 class TestSurveyAPIViewSet(TestCase):
 
     @classmethod
@@ -23,9 +25,9 @@ class TestSurveyAPIViewSet(TestCase):
             id=3, username='cname', password='cname', email='cname@gmail.com')
 
         cls.django_admin = User.objects.create_user(
-             id=10, username='admin',
-             password='12345', email='admin@gmail.com',
-             is_staff=True)
+            id=10, username='admin',
+            password='12345', email='admin@gmail.com',
+            is_staff=True)
 
         cls.user = BaseUsers.objects.create(
             id=1, username='name10', password='name10',
@@ -154,6 +156,7 @@ class TestSurveyAPIViewSet(TestCase):
         cls.surveyquestion_3.clean()
 
     """Authentication credentials were not provided."""
+
     def test_if_user_is_logged_in(self):
         self.tearDown()
         response = self.client.get('/api/v1/survey/')
@@ -161,6 +164,7 @@ class TestSurveyAPIViewSet(TestCase):
             response.data['detail'].code, 'not_authenticated')
 
     """Survey Tests"""
+
     def test_if_survey_created_returns_201_created(self):
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
@@ -220,6 +224,7 @@ class TestSurveyAPIViewSet(TestCase):
     '''
     user is able to update the survey until submission is created
     '''
+
     def test_if_survey_returns_200_when_updated(self):
         response = self.client.get('/api/v1/survey/300/')
         response.data['title'] = 'Peter is awesome'
@@ -253,30 +258,52 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(duplicate_post.data,
                          'Chosen Question is already added to the survey')
 
-    def test_if_user_can_update_survey_that_is_not_chosen(self): #todo seams
-        # that this test i depending on the tests from the company or why is
-        # it failing when we run the survey test separately? the id=15 is
-        # not passed to the post , i doubt that the question does hav this id
+    # def test_if_user_can_update_survey_that_is_not_chosen(self): #todo seams
+    #     # that this test is depending on the tests from the company or why is
+    #     # it failing when we run the survey test separately? the id=15 is
+    #     # not passed to the post , I doubt that the question does hav this id
+    #     self.tearDown()
+    #     self.logged_in_user = self.client.login(username='name11',
+    #                                             password='name11')
+    #     new_qsn = {'id': 15, 'survey': 301, 'question': 604}
+    #     response = self.client.post('/api/v1/survey_questions/', new_qsn)
+    #     # self.assertEqual(response.status_code,201)
+    #     survey_qsn = self.client.get('/api/v1/survey_questions/15/')
+    #     # print(survey_qsn)
+    #     survey_qsn.data['survey'] = 300
+    #     update_post = self.client.put(
+    #          '/api/v1/survey_questions/15/', survey_qsn.data)
+    #     # print(update_post.data)
+    #     self.assertEqual(
+    #          update_post.data, 'Edit only questions for chosen survey')
+    def test_if_user_can_update_survey_that_is_not_chosen(self):
         self.tearDown()
         self.logged_in_user = self.client.login(username='name11',
                                                 password='name11')
-        new_qsn = {'id': 15, 'survey': 301, 'question': 604}
-        response = self.client.post('/api/v1/survey_questions/', new_qsn)
-        # self.assertEqual(response.status_code,201)
-        survey_qsn = self.client.get('/api/v1/survey_questions/15/')
+
+        new_qsn = {'survey': 301, 'question': 604}
+        response_1 = self.client.post('/api/v1/survey_questions/', new_qsn)
+        qsn_id = response_1.data['id']
+
+        # survey_questions_list = self.client.get('/api/v1/survey_questions/')
+        # print(survey_questions_list.data)
+        # print(SurveyQuestion.objects.last().id)
+        survey_qsn = self.client.get(f'/api/v1/survey_questions/{qsn_id}/')
         # print(survey_qsn)
+        # print(survey_qsn.data)
         survey_qsn.data['survey'] = 300
         update_post = self.client.put(
-             '/api/v1/survey_questions/15/', survey_qsn.data)
-        # print(update_post.data)
+            f'/api/v1/survey_questions/{qsn_id}/', survey_qsn.data)
+        # print(update_post)
         self.assertEqual(
-             update_post.data, 'Edit only questions for chosen survey')
+            update_post.data, 'Edit only questions for chosen survey')
 
     def test_if_template_survey_qsn_can_be_deleted_from_survey(self):
         response = self.client.delete('/api/v1/survey_questions/701/')
         self.assertEqual(
             response.data['detail'],
             'You do not have permission to perform this action.')
+
     # def test_if_survey_qsn_can_be_deleted_when_survey_is_active(self):
     #     response_1 = self.client.get('/api/v1/survey/300/')
     #     response_1.data['is_active']=False
@@ -344,6 +371,7 @@ class TestSurveyAPIViewSet(TestCase):
                          'You do not have permission to perform this action.')
 
     """Admin tests"""
+
     def test_if_admin_can_create_survey(self):
         self.tearDown()
         self.logged_in_user = self.client.login(username='admin',
@@ -385,6 +413,7 @@ class TestSurveyAPIViewSet(TestCase):
                          'Template Survey cannot be deleted')
 
     """Question Tests"""
+
     def test_if_user_created_choice_question_is_created(self):
         question = {"prompt": "This is a choice question", "type": "cho",
                     "template_question": False}
@@ -398,6 +427,7 @@ class TestSurveyAPIViewSet(TestCase):
         self.assertEqual(response.status_code, 201)
 
     """Submission Tests"""
+
     def test_if_user_created_submission_returns_201(self):
         submission = {"is_complete": False, "survey": 300,
                       "submitter": 1, "created_at": "2022-12-12"}

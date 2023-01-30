@@ -14,7 +14,7 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 
 
 class SurveyAPIViewSet(ModelViewSet):
-    search_fields = ['title', 'company__name',]
+    search_fields = ['title', 'company__name', ]
     filter_backends = (filters.SearchFilter,)
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
@@ -95,6 +95,7 @@ class SurveyAPIViewSet(ModelViewSet):
     '''
     Do not allow user to inactivate the survey if submission is created for it
     '''
+
     def update(self, request, *args, **kwargs):
         survey = self.get_object()
         serializer = self.get_serializer(survey, data=request.data)
@@ -207,9 +208,12 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
                 survey_id=survey,
                 question_id=question)
             if not survey_question:
-                SurveyQuestion.objects.create(survey_id=survey,
-                                              question_id=question)
-                return Response(serializer.data, status=201)
+                survey_question = SurveyQuestion.objects.create(
+                    survey_id=survey,
+                    question_id=question)
+
+                return Response(SurveyQuestionSerializer(survey_question).data,
+                                status=201)
             else:
                 return Response(
                     'Chosen Question is already added to the survey')
@@ -232,9 +236,14 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             if serializer.validated_data['survey'].id is not \
                     survey_question.survey_id:
                 return Response('Edit only questions for chosen survey')
+                # todo:question this can not happen since he is only allwoed to
+                # create
+                # one survey per company and only if he is creator he will
+                # have permission, so the response would be permission
+                # denied check the alternative testcase
             elif serializer.data['survey'] == survey_question.survey_id:
                 SurveyQuestion.objects.filter(id=survey_question.id,
-                                              survey_id=survey_chosen.id).\
+                                              survey_id=survey_chosen.id). \
                     update(question=serializer.validated_data['question'])
                 return Response('Survey_Question updated', status=201)
 
@@ -487,7 +496,7 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
                 submission_id=serializer.validated_data['submission'],
                 question_id=serializer.validated_data['question'],
                 option_id=serializer.validated_data['option']
-                )
+            )
             serializer.save()
             return Response(serializer.data)
         else:
@@ -557,7 +566,7 @@ class AnswerTextAPIViewSet(ModelViewSet):
                 submission_id=serializer.validated_data['submission'],
                 question_id=serializer.validated_data['question'],
                 comment=serializer.validated_data['comment']
-                )
+            )
             serializer.save()
             return Response(serializer.data)
         else:

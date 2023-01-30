@@ -169,7 +169,8 @@ class JobPostingAPIViewSet(ModelViewSet):
         salary = serializer.data['salary']
 
         if request.user.baseuser.user_type == 'com':
-            com_profile = CompanyProfile.objects.filter(
+            com_profile = CompanyProfile.objects.get(  # todo check who have
+                # made it filter
                 base_user_id=request.user.baseuser.id)
             with transaction.atomic():
                 if com_profile:

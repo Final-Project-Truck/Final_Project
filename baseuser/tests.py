@@ -103,14 +103,14 @@ class TestBaseUsersAPIViewSet(TestCase):
 
     def test_if_django_user_is_updated_when_baseuser_is_updated(self):
         response = self.client.get('/api/v1/baseusers/100/')
-        response.data['password'] = 'name1' # since password is write only
+        response.data['password'] = 'name1'  # since password is write only
         # now it is not returned in the response body
         print(response.data)
         response.data['username'] = 'Divya'
         print(response.data)
-        resopnse2=self.client.put('/api/v1/baseusers/100/', response.data)
-        print(resopnse2.data)
-        print(resopnse2)
+        response2 = self.client.put('/api/v1/baseusers/100/', response.data)
+        print(response2.data)
+        print(response2)
         django_user = User.objects.get(baseuser=100)
         print(django_user)
         self.assertEqual(django_user.username, 'Divya')
