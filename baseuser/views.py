@@ -1,3 +1,4 @@
+import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import make_password
@@ -9,7 +10,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework import status, filters, generics
+from rest_framework import status, filters, generics, serializers
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -21,7 +22,7 @@ from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 from baseuser.serializers import BaseUsersSerializer, UserProfileSerializer, \
     CompanyProfileSerializer, ChangePasswordSerializer, \
-    PersonBaseUsersSerializer, CompanyBaseUsersSerializer
+    PersonBaseUsersSerializer, CompanyBaseUsersSerializer, LoginSerializer
 
 '''
 =============================API Views========================================
@@ -350,6 +351,98 @@ def forget_password(request):
         return render(request, 'forget_password.html')
 
 
+# def loginPage(request): #todo this was the one from fares
+#     if request.user.is_authenticated:
+#         return redirect('home')
+#     else:
+#         if request.method == 'POST':
+#             username = request.POST.get('username')
+#             password = request.POST.get('password')
+#
+#             user = authenticate(request, username=username, password=password)
+#
+#             if user is not None:
+#                 login(request, user)
+#                 return redirect('home')
+#             else:
+#                 messages.info(request, 'Username OR password is incorrect')
+#
+#         context = {}
+#         return render(request, 'loginPage.html', context)
+
+# class LoginView(APIView):
+#     permission_classes = ()
+#     authentication_classes = ()
+#
+#     def post(self, request, *args, **kwargs):
+#         serializer = LoginSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = authenticate(
+#             request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
+#         if user:
+#             login(request, user)
+#             return Response(status=status.HTTP_200_OK)
+#         else:
+#             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+# def loginPage(request):
+#     if request.user.is_authenticated:
+#         return redirect('home')
+#     else:
+#         if request.method == 'POST':
+#             username = request.POST.get('username')
+#             password = request.POST.get('password')
+#             serializer_data = {'username': username, 'password': password}
+#             serializer = LoginSerializer(data=serializer_data)
+#             if serializer.is_valid(raise_exception=True):
+#                 user = authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
+#                 if user:
+#                     login(request, user)
+#                     return redirect('home')
+#                 else:
+#                     messages.info(request, 'Wrong Credentials')
+#             else:
+#                 messages.info(request, 'Wrong Credentials')
+
+class LoginAPIView(generics.GenericAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = LoginSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            "token": token.key,
+            "user_id": user.pk,
+            "username": user.username
+        })
+
+
+# def loginPage(request):#todo ths one is not authenticating correctclty
+#     if request.user.is_authenticated:
+#         return redirect('home')
+#     else:
+#         if request.method == 'POST':
+#             username = request.POST.get('username')
+#             password = request.POST.get('password')
+#             data = {'username': username, 'password': password}
+#             response = requests.post(
+#                 'http://localhost:8001/api/token-auth/login', data=data)
+#             print(response.status_code)
+#             if response.status_code == 200:
+#                 response_data = response.json()
+#                 request.session['token'] = response_data['token']
+#                 request.session['user_id'] = response_data['user_id']
+#                 request.session['username'] = response_data['username']
+#                 return redirect('home')
+#             else:
+#                 messages.info(request, 'Username OR password is incorrect')
+#
+#         context = {}
+#         return render(request, 'loginPage.html', context)
+
 def loginPage(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -357,17 +450,25 @@ def loginPage(request):
         if request.method == 'POST':
             username = request.POST.get('username')
             password = request.POST.get('password')
-
-            user = authenticate(request, username=username, password=password)
-
-            if user is not None:
-                login(request, user)
-                return redirect('home')
-            else:
-                messages.info(request, 'Username OR password is incorrect')
+            data = {
+                'username': username,
+                'password': password
+            }
+            serializer = LoginSerializer(data=data)
+            try:
+                if serializer.is_valid(raise_exception=True):
+                    user = serializer.validate(data)
+                    token, created = Token.objects.get_or_create(user=user)
+                    response = redirect('home')
+                    response.set_cookie('token', token.key)
+                    context = {'user': user}
+                return render(request, 'home.html', context)
+            except serializers.ValidationError:
+                messages.info(request, 'Username OR password is incorrect-ser')
 
         context = {}
         return render(request, 'loginPage.html', context)
+
 
 
 def logoutPage(request):

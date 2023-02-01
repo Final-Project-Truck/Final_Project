@@ -188,6 +188,7 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
     serializer_class = SurveyQuestionSerializer
     permission_classes = [IsAuthenticated, IsSurveyOwner]
 
+
     '''
     Add questions to the survey, if the survey is not active.
     Activate it, if the survey is ready to be answered.

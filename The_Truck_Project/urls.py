@@ -7,7 +7,7 @@ from drf_yasg import openapi
 
 from baseuser.views import BaseUsersAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordAPIView, \
-    TokenAuthenticationAPIView
+    TokenAuthenticationAPIView, LoginAPIView
 from baseuser.views import registerPage, loginPage, logoutPage, home
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
     PostLikeAPIViewSet
@@ -67,9 +67,13 @@ urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
          name='schema-swagger-ui'),
     path('', home, name="home"),
-    path('api-auth/', include('rest_framework.urls')),
-    path('authenticate/', TokenAuthenticationAPIView.as_view(),
-         name='authenticate'),
+    path('api-auth/', include('rest_framework.urls'),
+         name='basic_authentication'),
+    path('api/v1/token-auth/login', LoginAPIView.as_view(),
+         name='token_authentication'),  # a more secure authentication method
+    # than the basic auth, this endpoint will be connected to the login_page
+    # on the frontend , the front end login sends a post request to this
+    # endpoint to authenticate the user to CRUD the data from the back end
 
     path('api/v1/', include(router.urls), name="api"),
     # todo check which apraoch is more compatible with restfull api

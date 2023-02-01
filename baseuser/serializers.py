@@ -1,3 +1,4 @@
+from django.contrib.auth import authenticate
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
@@ -46,8 +47,18 @@ class CompanyBaseUsersSerializer(BaseUsersSerializer):
         return super().create(validated_data)
 
 
-class TockenAuthenticationSerializer(ModelSerializer):
-    pass
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        user = authenticate(**data)
+        if user and user.is_active:
+            return user
+        raise serializers.ValidationError("Incorrect Credentials")
+
+# class TockenAuthenticationSerializer(ModelSerializer):
+#     pass
 
 
 class ChangePasswordSerializer(serializers.Serializer):  # todo check the
