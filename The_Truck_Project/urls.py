@@ -31,7 +31,8 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
-from analytics.views import generate_report
+from analytics.views import generate_report_surveys,\
+    generate_report_submissions
 from chat import views
 from chat.views import MessageViewSet
 
@@ -87,7 +88,9 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-    path('api/v1/report/', generate_report, name='report'),
+    path('api/v1/report_survey/', generate_report_surveys, name='report'),
+    path('api/v1/report_submission/', generate_report_submissions,
+         name='submission'),
     path('chat/v1', views.chat_view, name='chats'),
     path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
          name='chat'),
