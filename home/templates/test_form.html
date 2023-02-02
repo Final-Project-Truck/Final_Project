@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title> Django and Fetch API Form Submissions- No Page Refresh</title>
+  </head>
+  <body style="text-align: center; display: block"><p id="output-message"></p>
+<form action="{% url 'test_form' %}"  id="formdata" method="POST"
+      role="form" class="testForm">
+    {% csrf_token %}
+    <input type="text" name="name" id="name" class="form-control"  placeholder="Your Name"  required> <br><br><br>
+    <input type="text" class="form-control" name="location" id="location"
+       placeholder="Location"  required> <br><br><br>
+    <input type="text" class="form-control" name="description" id="description"
+       placeholder="description"  required> <br><br><br>
+
+<input type="submit" id="add_company" value="add company">
+
+</form>
+  <script type="text/javascript">
+    document.getElementById("formdata").addEventListener("submit", function(e){
+    e.preventDefault();
+      });
+
+
+    name = document.getElementById("name").value;
+    location = document.getElementById("location").value;
+    description = document.getElementById("description").value;
+
+  const formData = new FormData();
+  //console.log(name);
+  formData.append('name', name);
+  formData.append('location', location);
+  formData.append('description', description);
+  formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  console.log(formData);
+  fetch('{% url "test_form" %}', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log('Success:', data);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+  });
+</script>

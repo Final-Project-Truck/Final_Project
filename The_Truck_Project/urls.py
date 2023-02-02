@@ -7,8 +7,8 @@ from drf_yasg import openapi
 
 from baseuser.views import BaseUsersAPIViewSet, \
     UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordAPIView, \
-    TokenAuthenticationAPIView, LoginAPIView
-from baseuser.views import registerPage, loginPage, logoutPage, home
+    LoginAPIView
+from baseuser.views import registerPage, loginPage, logoutPage
 from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
     PostLikeAPIViewSet
 
@@ -20,6 +20,10 @@ from survey.views import SurveyQuestionAPIViewSet
 from analytics.views import generate_report
 from chat import views
 from chat.views import MessageViewSet
+
+from home.views import home_page, company_list, company_details, \
+    SurveyCreationView, add_company, test_company, get_surveys_by_company
+
 # from django.urls import re_path
 
 # base_user_list = BaseUsersAPIViewSet.as_view({
@@ -34,16 +38,16 @@ from chat.views import MessageViewSet
 # })
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="The_Truck_Project",
-      default_version='v1',
-      description="Make a Survey",
-      terms_of_service="https://www.google.com/policies/terms/",
-      contact=openapi.Contact(email="theman198888@gmail.com"),
-      license=openapi.License(name="BSD License"),
-   ),
-   public=True,
-   permission_classes=[permissions.AllowAny],
+    openapi.Info(
+        title="The_Truck_Project",
+        default_version='v1',
+        description="Make a Survey",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="theman198888@gmail.com"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
 )
 
 router = routers.DefaultRouter()
@@ -66,9 +70,8 @@ router.register(r'post_likes', PostLikeAPIViewSet)
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
          name='schema-swagger-ui'),
-    path('', home, name="home"),
-    path('api-auth/', include('rest_framework.urls'),
-         name='basic_authentication'),
+
+    path('api-auth/', include('rest_framework.urls')),
     path('api/v1/token-auth/login', LoginAPIView.as_view(),
          name='token_authentication'),  # a more secure authentication method
     # than the basic auth, this endpoint will be connected to the login_page
@@ -109,4 +112,15 @@ urlpatterns = [
     path('api/v1/messages/', views.message_list, name='message-list'),
     path('api/v1/change-password/', ChangePasswordAPIView.as_view(),
          name='change-password'),
+
+    #   ----home views front end-------
+    path('', home_page, name="home"),
+    path('companies/', company_list, name="company_list"),
+    path('companies/<int:company_id>/', company_details),
+    path('companies/add_company/', add_company, name='add_company'),
+    path('survey/create/', SurveyCreationView.as_view()),
+    path('test_form/', test_company, name='test_form'),
+    path('companies/<int:company_id>/surveys/', get_surveys_by_company,
+         name='get_surveys_by_company'),
+
 ]

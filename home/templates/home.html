@@ -38,6 +38,52 @@
     <div class="wlc-container">
         <h1 class="wlc">Welcome to the final project</h1>
         <p class="wlc1">This is the home page.</p>
+
+<!------------------------review button---------------------------->
+<button type="button" id="review-company-button">Review a Company</button>
+<div id="review-company-form" style="display:none;">
+  <select id="dropdown-list">
+  </select>
+  <input type="text" id="search-input"
+         placeholder=" Search for your Company">
+  <button type="button" id="create-company-button" style="display:none;">Add
+      your  Company</button>
+</div>
+    <select id="survey-dropdown">
+    </select>
+<div id="create-company-form" style="display:none;">
+  <!-- Form fields for creating a new company -->
+<!--    <form method="post">-->
+<!--  {% csrf_token %}-->
+<!--  {{ form.as_p }}-->
+<!--  <input type="submit" value="Create Company">-->
+<!--</form>-->
+
+
+
+<form action="{% url 'add_company' %}" method="post">
+    {% csrf_token %}
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br><br>
+    <label for="location">Location:</label>
+    <input type="text" id="location" name="location"><br><br>
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description"><br><br>
+
+    <!-- Add other fields -->
+    <input type="submit" value="Submit">
+</form>
+</div>
+
+{% load static %}
+<script type="text/javascript" src="{% static 'js/select_or_create_company.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/select_or_create_survey.js' %}"></script>
+
+<!------------------------end button---------------------------->
+
+
+<!--         end review form---------------->
+
     </div>
     {% if is_authenticated %}
         <a href="{% url 'logout' %}" class="btn btn-danger" style="position: absolute; right: 2%; top: 2%;">Logout</a>

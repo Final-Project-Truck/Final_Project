@@ -1,6 +1,6 @@
-import requests
+# import requests
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import login, logout
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
@@ -262,9 +262,13 @@ class CompanyProfileAPIViewSet(ModelViewSet):
 =============================Form Views========================================
 '''
 
-
-def home(request):  # todo move the home with its templates to the home app
-    return render(request, 'home.html')
+#
+# def home(request):  # todo move the home with its templates to the home app
+#     # user_id = request.session.get('user_id')
+#     # user = User.objects.get(id=user_id)
+#     # context = {'user': user}
+#     # return render(request, 'home.html', context)
+#     return render(request, 'home.html')
 
 
 def registerPage(request):
@@ -359,7 +363,8 @@ def forget_password(request):
 #             username = request.POST.get('username')
 #             password = request.POST.get('password')
 #
-#             user = authenticate(request, username=username, password=password)
+#             user = authenticate(request, username=username,
+#                                          password=password)
 #
 #             if user is not None:
 #                 login(request, user)
@@ -378,12 +383,14 @@ def forget_password(request):
 #         serializer = LoginSerializer(data=request.data)
 #         serializer.is_valid(raise_exception=True)
 #         user = authenticate(
-#             request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
+#             request, username=serializer.validated_data['username'],
+#                      password=serializer.validated_data['password'])
 #         if user:
 #             login(request, user)
 #             return Response(status=status.HTTP_200_OK)
 #         else:
-#             return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response({"error": "Wrong Credentials"},
+#             status=status.HTTP_400_BAD_REQUEST)
 
 # def loginPage(request):
 #     if request.user.is_authenticated:
@@ -395,7 +402,9 @@ def forget_password(request):
 #             serializer_data = {'username': username, 'password': password}
 #             serializer = LoginSerializer(data=serializer_data)
 #             if serializer.is_valid(raise_exception=True):
-#                 user = authenticate(request, username=serializer.validated_data['username'], password=serializer.validated_data['password'])
+#                 user = authenticate(request,
+#                 username=serializer.validated_data['username'],
+#                 password=serializer.validated_data['password'])
 #                 if user:
 #                     login(request, user)
 #                     return redirect('home')
@@ -450,6 +459,7 @@ def loginPage(request):
         if request.method == 'POST':
             username = request.POST.get('username')
             password = request.POST.get('password')
+            # request.session.flush()
             data = {
                 'username': username,
                 'password': password
@@ -461,6 +471,8 @@ def loginPage(request):
                     token, created = Token.objects.get_or_create(user=user)
                     response = redirect('home')
                     response.set_cookie('token', token.key)
+                    # request.session['user_id'] = user.id
+                    login(request, user)
                     context = {'user': user}
                 return render(request, 'home.html', context)
             except serializers.ValidationError:
@@ -468,7 +480,6 @@ def loginPage(request):
 
         context = {}
         return render(request, 'loginPage.html', context)
-
 
 
 def logoutPage(request):

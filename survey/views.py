@@ -184,10 +184,11 @@ class QuestionAPIViewSet(ModelViewSet):
 
 
 class SurveyQuestionAPIViewSet(ModelViewSet):
+    # search_fields = ['company__name']
+    # filter_backends = (filters.SearchFilter,)
     queryset = SurveyQuestion.objects.all()
     serializer_class = SurveyQuestionSerializer
     permission_classes = [IsAuthenticated, IsSurveyOwner]
-
 
     '''
     Add questions to the survey, if the survey is not active.

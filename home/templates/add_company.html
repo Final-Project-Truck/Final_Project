@@ -1,0 +1,21 @@
+<h1>Add Company</h1>
+<!--<form action="companies/add_company/" method="post">-->
+<!--  {%  csrf_token %}-->
+<!--  <table>-->
+<!--      {{ form.as_table }}-->
+<!--  </table>-->
+<!--  <input type="submit" name="Send">-->
+<!--</form>-->
+
+<form action="{% url 'add_company' %}" method="post">
+    {% csrf_token %}
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name"><br><br>
+    <label for="location">Location:</label>
+    <input type="text" id="location" name="location"><br><br>
+    <label for="description">Description:</label>
+    <input type="text" id="description" name="description"><br><br>
+
+    <!-- Add other fields -->
+    <input type="submit" value="Submit">
+</form>

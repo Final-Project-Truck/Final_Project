@@ -1,0 +1,28 @@
+<h1>{{company.name}}</h1>
+<h2>List of Active Surveys</h2>
+    <ul>
+    {% for survey in surveys %}
+      {% if survey.is_active == True %}
+        {% if survey.creator != None %}
+          <li>{{survey.title}} made by {{survey.creator}}
+            <a href="/submission/"> Take Survey</a></li>
+        {% else %}
+          <li>{{survey.title}}
+            <a href="/submission/"> Take Survey</a></li>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+    </ul>
+
+<h2>List of Inactive Surveys</h2>
+    <ul>
+    {% for survey in surveys %}
+      {% if survey.is_active == False %}
+        <li>{{survey.title}} made by {{survey.creator}}
+          <a href="/edit/"> Edit Survey</a>
+        <a href="/activate/"> Activate Survey</a></li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+
+<h2><a href="/survey/create/">Create a Survey</a></h2>

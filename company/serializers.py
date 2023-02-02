@@ -5,6 +5,11 @@ from .models import Company, JobPosting, JobPostComment, PostLike
 
 
 class CompanySerializer(ModelSerializer):
+    # surveys = serializers.PrimaryKeyRelatedField(many=True,
+    #                                               queryset=Survey.objects.all())
+    #
+    # job_postings= serializers.PrimaryKeyRelatedField(many=True,
+    #                                               queryset=JobPosting.objects.all())
     class Meta:
         model = Company
         fields = '__all__'

@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Q, Count
 from rest_framework import status, filters
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from authentication.permissions import IsOwner
 from rest_framework.response import Response
@@ -11,6 +12,7 @@ from company.models import JobPosting, Company, JobPostComment, PostLike
 from company.serializers import CompanySerializer, JobPostingSerializer, \
     JobPostCommentSerializer, PostLikeSerializer
 from survey.models import Survey, Question, Option, SurveyQuestion
+from survey.serializers import SurveySerializer
 
 
 class CompanyAPIViewSet(ModelViewSet):
@@ -146,6 +148,16 @@ class CompanyAPIViewSet(ModelViewSet):
     def perform_destroy(self, chosen_company):
         with transaction.atomic():
             chosen_company.delete()
+
+    @action(detail=True, methods=['get'])
+    def get_active_surveys(self, request, pk=None):
+        company = self.get_object()
+
+        surveys = Survey.objects.filter(company=company, is_active=True)
+
+        serializer = SurveySerializer(surveys, many=True)
+        return Response(serializer.data,
+                        status=status.HTTP_200_OK)
 
 
 class JobPostingAPIViewSet(ModelViewSet):
