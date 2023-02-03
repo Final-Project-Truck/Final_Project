@@ -29,6 +29,8 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
+from forum.views import home, addInForum, addInDiscussion
+
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -79,5 +81,7 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
-
+    path('forum/', home, name='forum'),
+    path('addInForum/', addInForum, name='addInForum'),
+    path('addInDiscussion/', addInDiscussion, name='addInDiscussion'),
 ]
