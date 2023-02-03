@@ -1,3 +1,4 @@
+from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 
@@ -26,4 +27,13 @@ class CompanyProfileSerializer(ModelSerializer):
 
     class Meta:
         model = CompanyProfile
-        fields = '__all__'
+        exclude = ['base_user']
+
+
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True)
+
+    class Meta:
+        model = BaseUsers
+        fields = ('password1', 'password2')

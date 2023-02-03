@@ -33,7 +33,9 @@ jobs:
           python -m pip install -U drf-yasg
       - name: Coding Style
         run: |
-          flake8 --exclude venv,manage.py
+          flake8 --exclude venv,manage.py,*/migrations/* .
+        # flake8 --max-line-length=100 --exclude venv,manage.py,*/migrations/* .
+          
 
       - name: Run migrations
         env:

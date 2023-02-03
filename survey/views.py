@@ -1,10 +1,10 @@
 from django.db import transaction
-from rest_framework import status
+from rest_framework import status, filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from authentication.permissions import IsOwner, IsSurveyOwner, \
-    IsSubmissionOwner
+    IsSubmissionOwner, IsSurveySubmissionOwner
 from company.models import Company
 from survey.models import Survey, Question, Option, Submission, AnswerChoice, \
     AnswerText, SurveyQuestion
@@ -14,10 +14,14 @@ from survey.serializers import SurveySerializer, QuestionSerializer, \
 
 
 class SurveyAPIViewSet(ModelViewSet):
+    search_fields = ['title', 'company__name',]
+    filter_backends = (filters.SearchFilter,)
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
     permission_classes = [IsAuthenticated, IsOwner]
 
+    # def get_queryset(self):
+    #     return self.queryset.filter(creator=self.request.user.id )
     '''
     Create a survey. Set is_active to False.
     Survey can be activated only if the questions are added to it.
@@ -27,7 +31,7 @@ class SurveyAPIViewSet(ModelViewSet):
         serializer = SurveySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         title = serializer.data['title']
-        created_at = serializer.data['created_at']
+        # created_at = serializer.data['created_at']
         company = serializer.data['company']
         is_active = serializer.data['is_active']
 
@@ -47,7 +51,7 @@ class SurveyAPIViewSet(ModelViewSet):
                     else:
                         new_survey = Survey.objects.create(
                             title=title,
-                            created_at=created_at,
+                            # created_at=created_at,
                             company_id=company,
                             creator_id=request.user.baseuser.id,
                             is_active=is_active)
@@ -81,6 +85,8 @@ class SurveyAPIViewSet(ModelViewSet):
                         survey_question_3 = SurveyQuestion.objects.create(
                             survey=new_survey, question=template_question_3)
                         survey_question_3.save()
+
+                        # self.generate_report()
                     return Response(SurveySerializer(new_survey).data,
                                     status=201)
         else:
@@ -97,9 +103,7 @@ class SurveyAPIViewSet(ModelViewSet):
         survey_submission = Submission.objects.filter(survey_id=survey.id)
 
         if request.user.is_staff:
-            return Response('Admin cannot update the survey')
-        elif not survey.creator:
-            return Response('Template survey cannot be edited')
+            return Response('Admin cannot update a survey')
         elif survey_submission and not serializer.validated_data['is_active']:
             return Response('Cannot inactivate/update survey, submission is '
                             'already created.')
@@ -110,7 +114,7 @@ class SurveyAPIViewSet(ModelViewSet):
             Survey.objects.filter(
                 id=survey.id).update(
                 title=serializer.validated_data['title'],
-                created_at=serializer.validated_data['created_at'],
+                # created_at=serializer.validated_data['created_at'],
                 company=serializer.validated_data['company'],
                 is_active=serializer.validated_data['is_active'])
             return Response('Survey updated', status=201)
@@ -225,13 +229,14 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
         if survey_chosen.is_active:
             return Response('Survey is active, cannot update questions')
         else:
-            if serializer.data['survey'] == survey_question.survey_id:
+            if serializer.validated_data['survey'].id is not \
+                    survey_question.survey_id:
+                return Response('Edit only questions for chosen survey')
+            elif serializer.data['survey'] == survey_question.survey_id:
                 SurveyQuestion.objects.filter(id=survey_question.id,
                                               survey_id=survey_chosen.id).\
                     update(question=serializer.validated_data['question'])
                 return Response('Survey_Question updated', status=201)
-            else:
-                return Response('Edit only the chosen survey')
 
     def destroy(self, request, *args, **kwargs):
         survey_question = self.get_object()
@@ -242,7 +247,8 @@ class SurveyQuestionAPIViewSet(ModelViewSet):
             if survey_chosen.is_active:
                 return Response('Cannot delete survey when active')
             elif question_chosen.template_question:
-                return Response('Cannot delete template question')
+                return Response(
+                    'You do not have permission to perform this action.')
             else:
                 self.perform_destroy(survey_question)
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -300,7 +306,7 @@ class OptionAPIViewSet(ModelViewSet):
 class SubmissionAPIViewSet(ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAuthenticated, IsSurveyOwner]
+    permission_classes = [IsAuthenticated, IsSurveySubmissionOwner]
 
     '''
     Create a submission only if the survey chosen by user is active.
@@ -313,34 +319,45 @@ class SubmissionAPIViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         survey = serializer.data['survey']
-        created = serializer.data['created_at']
+        # created = serializer.data['created_at']
         is_complete = serializer.data['is_complete']
-        # submitter = serializer.data['submitter']
 
         survey_chosen = Survey.objects.get(id=survey)
+        if not request.user.is_staff:
+            submission_made = Submission.objects.filter(
+                survey_id=survey,
+                submitter_id=request.user.baseuser)
+            with transaction.atomic():
+                # if not survey_chosen.creator:
+                #     return Response('Submission cannot
+                #     be created for template survey')
+                # elif survey_chosen.creator.id == request.user.id:
+                if not submission_made:
+                    if survey_chosen.is_active:
+                        if serializer.data['is_complete']:
+                            return Response(
+                                'Submission cannot be completed during'
+                                ' creation, Please uncheck is_complete')
+                        else:
+                            submission = Submission.objects.create(
+                                survey_id=survey,
+                                # created_at=created,
+                                is_complete=is_complete,
+                                submitter_id=request.user.id)
 
-        with transaction.atomic():
-            if survey_chosen.creator.id == request.user.id:
-                if survey_chosen.is_active:
-                    if serializer.data['is_complete']:
-                        return Response(
-                            'Submission cannot be completed during creation, '
-                            'Please uncheck is_complete')
+                            return Response(
+                                SubmissionSerializer(submission).data,
+                                status=201)
                     else:
-                        submission = Submission.objects.create(
-                            survey_id=survey,
-                            created_at=created,
-                            is_complete=is_complete,
-                            submitter_id=request.user.id)
-
-                        return Response(SubmissionSerializer(submission).data,
-                                        status=201)
+                        return Response(
+                            'Survey is not active, cannot create submission')
                 else:
-                    return Response(
-                        'Survey is not active, cannot create submission')
-            else:
-                return Response('Submission cannot be created for other '
-                                'users survey')
+                    return Response('Submission is already made to the survey')
+        else:
+            return Response('Admin cannot create submission')
+            # else:
+            #     return Response('Submission cannot be created for other '
+            #                     'users survey')
 
     def update(self, request, *args, **kwargs):
         choices = False
@@ -371,12 +388,14 @@ class SubmissionAPIViewSet(ModelViewSet):
             text = False
 
         if choices and text and serializer.validated_data['survey'].id == \
-                submission_survey.survey_id:
+                submission_survey.survey_id and not \
+                submission_survey.is_complete:
             Submission.objects.filter(id=submission_survey.id).update(
                 survey_id=serializer.validated_data['survey'],
-                created_at=serializer.validated_data['created_at'],
+                # created_at=serializer.validated_data['created_at'],
                 is_complete=serializer.validated_data['is_complete'],
                 submitter_id=request.user.baseuser.id)
+
             return Response('Survey updated')
         else:
             return Response(
@@ -418,19 +437,33 @@ class AnswerChoiceAPIViewSet(ModelViewSet):
 
         survey_submission = Submission.objects.get(id=submission)
         survey_chosen = Survey.objects.get(id=survey_submission.survey_id)
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question, survey_id=survey_chosen.id)
+
+        submitted_question = AnswerChoice.objects.filter(
+            submission_id=submission,
+            question_id=serializer.validated_data['question'])
 
         if survey_chosen.is_active and not survey_submission.is_complete:
-            question_chosen = Question.objects.get(id=question)
+            if not submitted_question:
+                if survey_question:
+                    question_chosen = Question.objects.get(id=question)
 
-            if question_chosen.type == 'cho':
-                AnswerChoice.objects.create(submission_id=submission,
-                                            question_id=question,
-                                            option_id=option)
+                    if question_chosen.type == 'cho':
+                        AnswerChoice.objects.create(submission_id=submission,
+                                                    question_id=question,
+                                                    option_id=option)
+                    else:
+                        return Response('Choose valid question')
+                    return Response(serializer.data, status=201)
+                else:
+                    return Response(
+                        'Chosen question is not available in survey')
             else:
-                return Response('Choose valid question')
-            return Response(serializer.data, status=201)
+                return Response('Question is already answered')
         else:
-            return Response('Survey is either not active or already submitted')
+            return Response(
+                'Survey is either not active or already submitted')
 
     '''
     Allow users to update only the answers to the added question,
@@ -481,18 +514,24 @@ class AnswerTextAPIViewSet(ModelViewSet):
         survey_submission = Submission.objects.get(id=submission)
 
         survey_chosen = Survey.objects.get(id=survey_submission.survey_id)
+        survey_question = SurveyQuestion.objects.filter(
+            question_id=question, survey_id=survey_chosen.id)
 
         if survey_chosen.is_active and not survey_submission.is_complete:
-            question_chosen = Question.objects.get(id=question)
-            if question_chosen.type == 'txt':
-                AnswerText.objects.create(submission_id=submission,
-                                          question_id=question,
-                                          comment=comment)
+            if survey_question:
+                question_chosen = Question.objects.get(id=question)
+                if question_chosen.type == 'txt':
+                    AnswerText.objects.create(submission_id=submission,
+                                              question_id=question,
+                                              comment=comment)
+                else:
+                    return Response('Choose valid question')
+                return Response(serializer.data, status=201)
             else:
-                return Response('Choose valid question')
-            return Response(serializer.data, status=201)
+                return Response('Chosen question is not available in survey')
         else:
-            return Response('Survey is either not active or already submitted')
+            return Response(
+                'Survey is either not active or already submitted')
 
     '''
         Allow users to update only the answers to the added question,
@@ -502,7 +541,6 @@ class AnswerTextAPIViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         answer_text = self.get_object()
-        print(answer_text.id)
         serializer = self.get_serializer(answer_text, data=request.data)
         serializer.is_valid(raise_exception=True)
         survey_submission = Submission.objects.get(

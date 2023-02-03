@@ -8,14 +8,16 @@ from django.urls import reverse
 from django.shortcuts import render, redirect
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from rest_framework import status
+from rest_framework import status, filters, generics
 from rest_framework.generics import ListAPIView
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from baseuser.forms import CreateUserForm
+from baseuser.forms import BaseUsersForm
 from baseuser.models import BaseUsers, UserProfile, CompanyProfile
 from baseuser.serializers import BaseUsersSerializer, \
-    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer
+    BaseUsersSafeSerializer, UserProfileSerializer, CompanyProfileSerializer, \
+    ChangePasswordSerializer
 
 
 class BaseUsersAPIViewSet(ModelViewSet):
@@ -88,37 +90,39 @@ class BaseUsersSafeAPIViewSet(ListAPIView):
     serializer_class = BaseUsersSafeSerializer
 
 
-def registerPage(request, django_user=None):
+def registerPage(request):
     if request.user.is_authenticated:
         return redirect('home')
     else:
-        form = CreateUserForm()
+        form = BaseUsersForm(request.POST or None)
         if request.method == 'POST':
-            form = CreateUserForm(request.POST)
+            form = BaseUsersForm(request.POST)
             if form.is_valid():
                 with transaction.atomic():
-                    user = form.save()
-                    djangouser = User.objects.get(
-                        email=form.cleaned_data['email'])
-                    BaseUsers.objects.create(**form.cleaned_data,
-                                             django_user_id=djangouser.id)
-                messages.success(request,
-                                 'Account was created for ' +
-                                 djangouser.username)
-                send_mail(
-                    'Register Completed',  # Change your Subject
-                    '[as a USER]Thank you for joining our Website',  #
-                    # Change your message
-
-                    'struckproject@gmail.com',  # Put the email your going
-                    # to use
-                    [user.email],
-                    fail_silently=False
-                )
-                return redirect('home')
-        else:
-            form = CreateUserForm()
-            return render(request, 'registerPage.html', {'form': form})
+                    djangouser, created = User.objects.get_or_create(
+                        username=form.cleaned_data['username'])
+                    if created:
+                        djangouser.email = form.cleaned_data['email']
+                        djangouser.set_password(form.cleaned_data['password1'])
+                        djangouser.save()
+                        BaseUsers.objects.create(**form.cleaned_data,
+                                                 django_user=djangouser)
+                        messages.success(request,
+                                         'Account was created for ' +
+                                         djangouser.username)
+                        send_mail(
+                            'Register Completed',  # Change your Subject
+                            'Thank you for joining our Website',
+                            # Change your message
+                            'struckproject@gmail.com',
+                            # Put the email your going to use
+                            [djangouser.email],
+                            fail_silently=False
+                        )
+                        return redirect('home')
+                    else:
+                        messages.error(request, 'Username already taken')
+        return render(request, 'registerPage.html', {'form': form})
 
 
 def forget_password(request):
@@ -159,6 +163,45 @@ def forget_password(request):
         return render(request, 'forget_password.html')
 
 
+class ChangePasswordView(generics.UpdateAPIView):
+    """
+    An endpoint for changing password.
+    """
+    serializer_class = ChangePasswordSerializer
+    model = BaseUsers
+    permission_classes = (IsAuthenticated,)
+
+    def get_object(self, queryset=None):
+        obj = self.request.user
+        return obj
+
+    def update(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            # Check old password
+            if not self.object.check_password(serializer.data.get(
+                    "old_password")):
+                return Response({"old_password": ["Wrong password."]},
+                                status=status.HTTP_400_BAD_REQUEST)
+            # set_password also hashes the password that the user will get
+            self.object.set_password(serializer.data.get("new_password"))
+            self.object.save()
+            # update the password in the BaseUsers table
+            base_user = BaseUsers.objects.get(django_user=self.object)
+            base_user.password1 = serializer.data.get("new_password")
+            base_user.password2 = serializer.data.get("new_password")
+            base_user.save()
+            response = {
+                'status': 'success',
+                'code': status.HTTP_200_OK,
+                'message': 'Password updated successfully',
+            }
+            return Response(response)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 def loginPage(request):
     if request.user.is_authenticated:
         return redirect('home')
@@ -195,58 +238,40 @@ class UserProfileAPIViewSet(ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = UserProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        base_user = serializer.data['base_user']
-        current_company = serializer.data['current_company']
-        # picture = serializer.data['picture']
-        about = serializer.data['about']
-
         user_reference = BaseUsers.objects.get(
             id=serializer.validated_data['base_user'].id)
-        with transaction.atomic():
-            if user_reference.user_type == 'com':
-                return Response(
-                    'A Company cannot create a User Profile'
-                )
-            else:
-                user_profile = UserProfile.objects.create(
-                    base_user_id=base_user,
-                    current_company_id=current_company,
-                    about=about)
-                # serializer.validated_data['id'] = user_profile.id
-                serializer.data['picture'] = user_profile.picture.path
-                # serializer.save()
-                return Response(serializer.data, status=201)
-                # return Response(UserProfileSerializer(profile).data,
-                #                 status=201)
+
+        if user_reference.user_type == 'com':
+            return Response(
+                'A Company cannot create a User Profile'
+            )
+        else:
+            self.perform_create(serializer)
+            return Response(serializer.data, status=201)
 
 
 class CompanyProfileAPIViewSet(ModelViewSet):
+    search_fields = ['organization_type', 'company__name', 'website']
+    filter_backends = (filters.SearchFilter,)
     queryset = CompanyProfile.objects.all()
     serializer_class = CompanyProfileSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = CompanyProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        base_user = serializer.data['base_user']
         company = serializer.data['company']
         website = serializer.data['website']
         number_of_employees = serializer.data['number_of_employees']
         organization_type = serializer.data['organization_type']
         revenue = serializer.data['revenue']
 
-        user_reference = BaseUsers.objects.get(
-            id=serializer.validated_data['base_user'].id)
-        with transaction.atomic():
-            if user_reference.user_type == 'per':
-                return Response(
-                    'A Person cannot create a Company Profile'
-                )
-            else:
-                CompanyProfile.objects.create(
-                    base_user_id=base_user, company_id=company,
-                    website=website,
-                    number_of_employees=number_of_employees,
-                    organization_type=organization_type,
-                    revenue=revenue)
-                return Response(serializer.data, status=201)
+        if request.user.baseuser.user_type == 'com':
+            CompanyProfile.objects.create(
+                base_user_id=request.user.baseuser.id, company_id=company,
+                website=website,
+                number_of_employees=number_of_employees,
+                organization_type=organization_type,
+                revenue=revenue)
+            return Response(serializer.data, status=201)
+        else:
+            return Response('Only authorized user can create company profile')

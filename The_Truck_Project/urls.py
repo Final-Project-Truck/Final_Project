@@ -21,16 +21,19 @@ from rest_framework import routers, permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from baseuser.views import BaseUsersAPIViewSet, BaseUsersSafeAPIViewSet, \
-    UserProfileAPIViewSet, CompanyProfileAPIViewSet
+    UserProfileAPIViewSet, CompanyProfileAPIViewSet, ChangePasswordView
 from baseuser.views import registerPage, loginPage, logoutPage, home
-from company.views import CompanyAPIViewSet
+from company.views import CompanyAPIViewSet, JobPostCommentAPIViewSet, \
+    PostLikeAPIViewSet
 from company.views import JobPostingAPIViewSet
 from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
 from forum.views import home, addInForum, addInDiscussion
-
+from analytics.views import generate_report
+from chat import views
+from chat.views import MessageViewSet
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -49,7 +52,8 @@ router = routers.DefaultRouter()
 router.register(r'baseusers', BaseUsersAPIViewSet)
 router.register(r'user-profile', UserProfileAPIViewSet)
 router.register(r'company-profile', CompanyProfileAPIViewSet)
-router.register(r'jobposting', JobPostingAPIViewSet)
+router.register(r'job_posting', JobPostingAPIViewSet)
+router.register(r'job_post_comment', JobPostCommentAPIViewSet)
 router.register(r'companies', CompanyAPIViewSet)
 router.register(r'survey', SurveyAPIViewSet)
 router.register(r'questions', QuestionAPIViewSet)
@@ -58,6 +62,8 @@ router.register(r'options', OptionAPIViewSet)
 router.register(r'submissions', SubmissionAPIViewSet)
 router.register(r'choice_answers', AnswerChoiceAPIViewSet)
 router.register(r'text_answers', AnswerTextAPIViewSet)
+router.register(r'messages', MessageViewSet)
+router.register(r'post_likes', PostLikeAPIViewSet)
 
 urlpatterns = [
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0),
@@ -81,6 +87,15 @@ urlpatterns = [
     path('reset/done/', auth_views.PasswordResetCompleteView.as_view(
         template_name='password_reset_complete.html'),
          name='password_reset_complete'),
+    path('api/v1/report/', generate_report, name='report'),
+    path('chat/v1', views.chat_view, name='chats'),
+    path('chat/v1/<int:sender>/<int:receiver>/', views.message_view,
+         name='chat'),
+    path('api/v1/messages/<int:sender>/<int:receiver>/', views.message_list,
+         name='message-detail'),
+    path('api/v1/messages/', views.message_list, name='message-list'),
+    path('api/v1/change-password/', ChangePasswordView.as_view(),
+         name='change-password'),
     path('forum/', home, name='forum'),
     path('addInForum/', addInForum, name='addInForum'),
     path('addInDiscussion/', addInDiscussion, name='addInDiscussion'),

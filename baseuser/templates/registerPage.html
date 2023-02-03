@@ -94,6 +94,9 @@
 					<form method="POST" action="">
 						{% csrf_token %}
 						<div class="input-group mb-3">
+							{{form.user_type}}
+						</div>
+						<div class="input-group mb-3">
 							<div class="input-group-append">
 								<span class="input-group-text"><i class="fas fa-user"></i></span>
 							</div>

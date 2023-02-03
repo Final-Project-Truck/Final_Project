@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'analytics',
     'django.contrib.auth.password_validation',
     'authentication',
+    'chat',
     'forum'
 ]
 
