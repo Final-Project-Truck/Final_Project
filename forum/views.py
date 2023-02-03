@@ -1,11 +1,10 @@
 from django.shortcuts import render, redirect
-from .models import *
-from .forms import *
+from .forms import Forum, CreateInForum, CreateInDiscussion
 
 
 # Create your views here.
 
-def home(request):
+def homeforum(request):
     forums = Forum.objects.all()
     count = forums.count()
     discussions = []

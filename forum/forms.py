@@ -4,7 +4,7 @@ from .models import Discussion, Forum
 
 class CreateInForum(ModelForm):
     class Meta:
-        model= Forum
+        model = Forum
         fields = "__all__"
 
 

@@ -30,7 +30,7 @@ from survey.views import SurveyAPIViewSet, QuestionAPIViewSet, \
     OptionAPIViewSet, SubmissionAPIViewSet, \
     AnswerChoiceAPIViewSet, AnswerTextAPIViewSet
 from survey.views import SurveyQuestionAPIViewSet
-from forum.views import home, addInForum, addInDiscussion
+from forum.views import homeforum, addInForum, addInDiscussion
 from analytics.views import generate_report
 from chat import views
 from chat.views import MessageViewSet
@@ -96,7 +96,7 @@ urlpatterns = [
     path('api/v1/messages/', views.message_list, name='message-list'),
     path('api/v1/change-password/', ChangePasswordView.as_view(),
          name='change-password'),
-    path('forum/', home, name='forum'),
+    path('forum/', homeforum, name='forum'),
     path('addInForum/', addInForum, name='addInForum'),
     path('addInDiscussion/', addInDiscussion, name='addInDiscussion'),
 ]
