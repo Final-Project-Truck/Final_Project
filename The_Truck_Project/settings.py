@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.auth.password_validation',
     'authentication',
     'chat',
+    'forum'
 ]
 
 MIDDLEWARE = [
